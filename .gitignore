@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backups
+*.bak
+*.bak-*
+*.pdf
+
+# Documentation (internal)
+docs/
+AUDITORIA-*.md
+
+# Firebase deploy config (server-side only)
+firebase.json
+.firebaserc
+firestore.rules
+storage.rules
+
+# Legacy files
+data/

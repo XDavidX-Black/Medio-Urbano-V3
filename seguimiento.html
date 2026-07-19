@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento de Pedido - Medio Urbano</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <link rel="icon" href="img/favicon.png">
+  <meta name="theme-color" content="#FFD028">
+  <style>
+    :root{
+      --primary:#FFD028;--bg:#0b0b0b;--surface:#151515;--surface2:#1a1a1a;
+      --text:#f0f0f0;--text-secondary:#888;--radius:20px;
+      --font-title:'Bebas Neue',sans-serif;--font-body:'Montserrat',sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:var(--font-body);background:var(--bg);color:var(--text);
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      padding:20px;
+    }
+    .track-container{max-width:500px;width:100%;margin:0 auto;}
+
+    /* Loading / Error */
+    .track-loading{text-align:center;padding:60px 20px;color:var(--text-secondary);}
+    .track-loading i{font-size:48px;color:var(--primary);margin-bottom:16px;display:block;animation:spin 1s linear infinite;}
+    .track-error{text-align:center;padding:60px 20px;}
+    .track-error i{font-size:48px;color:#ff5252;margin-bottom:16px;display:block;}
+    .track-error h2{font-family:var(--font-title);font-size:28px;color:#fff;margin-bottom:8px;}
+    .track-error p{color:var(--text-secondary);font-size:14px;}
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
+    /* Brand header */
+    .track-brand{text-align:center;margin-bottom:24px;}
+    .track-brand-logo{
+      width:80px;height:80px;object-fit:contain;margin:0 auto 8px;display:block;
+      filter:drop-shadow(0 0 20px rgba(255,208,40,.2));
+      border-radius:16px;background:var(--surface);padding:8px;
+    }
+    .track-brand-logo.no-bg{background:transparent;padding:0;}
+    .track-brand-name{
+      font-family:var(--font-title);font-size:11px;letter-spacing:4px;
+      color:var(--primary);margin-bottom:4px;
+    }
+    .track-order-id{
+      font-size:13px;color:var(--text-secondary);
+    }
+    .track-order-id span{color:var(--primary);font-weight:700;}
+
+    /* Card */
+    .track-card{
+      background:var(--surface);border-radius:var(--radius);padding:24px;
+      border:1px solid rgba(255,255,255,.06);margin-bottom:16px;
+    }
+    .track-card-title{
+      font-family:var(--font-title);font-size:12px;letter-spacing:3px;
+      color:var(--primary);margin-bottom:16px;
+      padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .track-card-title i{margin-right:6px;font-size:11px;}
+
+    /* Progress */
+    .track-steps{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:0 10px;}
+    .track-line{position:absolute;top:18px;left:30px;right:30px;height:3px;background:rgba(255,255,255,.08);z-index:1;border-radius:2px;}
+    .track-line-fill{height:100%;background:linear-gradient(90deg,#4caf50,var(--primary));border-radius:2px;transition:width .8s ease;width:0%;}
+    .track-step{display:flex;flex-direction:column;align-items:center;z-index:2;flex:1;}
+    .track-dot{
+      width:36px;height:36px;border-radius:50%;background:var(--surface2);
+      border:3px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+      font-size:13px;color:#555;transition:.5s;
+    }
+    .track-step.active .track-dot{
+      border-color:var(--primary);color:var(--primary);
+      box-shadow:0 0 20px rgba(255,208,40,.3);animation:pulse 2s infinite;
+    }
+    .track-step.done .track-dot{border-color:#4caf50;background:#4caf50;color:#fff;}
+    .track-label{margin-top:8px;font-size:10px;color:#555;font-weight:600;text-align:center;letter-spacing:.3px;transition:.3s;}
+    .track-step.active .track-label{color:var(--primary);}
+    .track-step.done .track-label{color:#4caf50;}
+    @keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(255,208,40,.2);}50%{box-shadow:0 0 25px rgba(255,208,40,.5);}}
+    .track-status-msg{text-align:center;margin-top:16px;}
+    .track-status-msg h3{font-family:var(--font-title);font-size:24px;color:#fff;}
+    .track-status-msg p{font-size:13px;color:var(--text-secondary);margin-top:4px;}
+    .track-status-msg.cancel h3{color:#ff5252;}
+
+    /* Products */
+    .track-product{
+      display:flex;align-items:center;gap:12px;padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+    .track-product:last-child{border-bottom:none;}
+    .track-product img{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+    .track-product-info{flex:1;min-width:0;}
+    .track-product-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .track-product-detail{font-size:11px;color:var(--text-secondary);margin-top:1px;}
+    .track-product-detail .qty{color:var(--primary);font-weight:600;}
+    .track-product-sub{font-size:13px;font-weight:700;color:var(--primary);flex-shrink:0;}
+    .track-total{
+      display:flex;justify-content:space-between;padding:12px 0 0;margin-top:8px;
+      border-top:2px solid rgba(255,208,40,.3);font-size:18px;font-weight:700;color:var(--primary);
+    }
+
+    /* Delivery */
+    .track-info-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#bbb;}
+    .track-info-row .label{color:var(--text-secondary);}
+    .track-info-row .value{color:#fff;font-weight:600;text-align:right;max-width:55%;}
+    .track-map-btn{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      width:100%;padding:14px;margin-top:12px;border:none;border-radius:12px;
+      background:rgba(255,208,40,.1);color:var(--primary);font-size:14px;font-weight:700;
+      cursor:pointer;transition:.3s;font-family:var(--font-body);
+      text-decoration:none;
+    }
+    .track-map-btn:hover{background:rgba(255,208,40,.2);}
+
+    /* Footer */
+    .track-footer{text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px;}
+    .track-footer a{color:var(--primary);text-decoration:none;font-weight:600;}
+
+    @media(max-width:500px){
+      body{padding:12px;}
+      .track-card{padding:18px;}
+      .track-dot{width:30px;height:30px;font-size:11px;}
+      .track-label{font-size:9px;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="track-container" id="trackApp">
+    <div class="track-loading" id="trackLoading">
+      <i class="fas fa-spinner"></i>
+      <p>Cargando tu pedido...</p>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig={
+      apiKey:"AIzaSyBpUcRZLflzc6PFl0DsqtUHRlwWxwB83Qs",
+      authDomain:"medio-urbano.firebaseapp.com",
+      projectId:"medio-urbano",
+      storageBucket:"medio-urbano.firebasestorage.app",
+      messagingSenderId:"6304304662",
+      appId:"1:6304304662:web:4b3f43e71d190d03e92f37"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const STEPS=[
+      {key:"Pendiente",label:"Recibido",icon:"fa-receipt"},
+      {key:"Preparando",label:"Preparando",icon:"fa-fire-burner"},
+      {key:"En reparto",label:"En camino",icon:"fa-motorcycle"},
+      {key:"Entregado",label:"Entregado",icon:"fa-check-double"}
+    ];
+    const BRAND_NAMES={burgers:"Burgers",cocina:"Cocina",pasta:"Pasta",salad:"Salad"};
+    const STATUS_MSGS={
+      "Pendiente":{title:"Pedido recibido",desc:"Tu pedido fue registrado, estamos por confirmarlo."},
+      "Preparando":{title:"Preparando tu pedido",desc:"Nuestro equipo está preparando tu orden con calidad."},
+      "En reparto":{title:"En camino",desc:"Tu pedido va en camino, ¡llega pronto!"},
+      "Entregado":{title:"Pedido entregado",desc:"Tu pedido fue entregado. ¡Gracias por elegirnos!"},
+      "Cancelado":{title:"Pedido cancelado",desc:"Tu pedido ha sido cancelado."}
+    };
+
+    function getOrderId(){
+      const params=new URLSearchParams(window.location.search);
+      return params.get("id");
+    }
+
+    function showLoading(){
+      document.getElementById("trackApp").innerHTML='<div class="track-loading" id="trackLoading"><i class="fas fa-spinner"></i><p>Cargando tu pedido...</p></div>';
+    }
+    function showError(msg){
+      document.getElementById("trackApp").innerHTML='<div class="track-error"><i class="fas fa-exclamation-circle"></i><h2>Pedido no encontrado</h2><p>'+msg+'</p></div>';
+    }
+
+    let logosCache={};
+    function getLogo(marca){
+      return new Promise((resolve)=>{
+        if(logosCache[marca]){resolve(logosCache[marca]);return;}
+        firebase.firestore().collection("config").doc("logos").get()
+          .then(doc=>{
+            if(doc.exists&&doc.data()[marca]){
+              logosCache[marca]=doc.data()[marca];
+              resolve(doc.data()[marca]);
+            }else{
+              resolve(null);
+            }
+          })
+          .catch(()=>resolve(null));
+      });
+    }
+
+    function renderPage(orderId,data,logoUrl){
+      const marca=data.marca||null;
+      const brandLabel=marca?(BRAND_NAMES[marca]||marca.charAt(0).toUpperCase()+marca.slice(1)):"Medio Urbano";
+      const estado=data.estado||"Pendiente";
+      const isCancel=estado==="Cancelado";
+      const currentIdx=isCancel?-1:STEPS.findIndex(s=>s.key===estado);
+      const activeIdx=currentIdx>=0?currentIdx:0;
+      const linePct=STEPS.length<=1?0:(activeIdx/(STEPS.length-1))*100;
+
+      let html="";
+
+      /* Brand */
+      html+='<div class="track-brand">';
+      if(logoUrl) html+='<img class="track-brand-logo" src="'+logoUrl+'" alt="'+brandLabel+'">';
+      html+='<div class="track-brand-name">MEDIO URBANO '+(marca?brandLabel.toUpperCase():'')+'</div>';
+      html+='<div class="track-order-id">Pedido <span>#'+(data.pedidoId||orderId.substring(0,8).toUpperCase())+'</span></div>';
+      html+='</div>';
+
+      /* Status */
+      html+='<div class="track-card">';
+      html+='<div class="track-card-title"><i class="fas fa-route"></i> ESTADO DEL PEDIDO</div>';
+      html+='<div class="track-steps">';
+      html+='<div class="track-line"><div class="track-line-fill" style="width:'+linePct+'%;"></div></div>';
+      STEPS.forEach((step,i)=>{
+        const cls=i<activeIdx?"done":i===activeIdx&&!isCancel?"active":"";
+        html+='<div class="track-step '+cls+'"><div class="track-dot"><i class="fas '+step.icon+'"></i></div><div class="track-label">'+step.label+'</div></div>';
+      });
+      html+='</div>';
+      const msg=STATUS_MSGS[estado]||STATUS_MSGS["Pendiente"];
+      html+='<div class="track-status-msg'+(isCancel?' cancel':'')+'"><h3>'+msg.title+'</h3><p>'+msg.desc+'</p></div>';
+      html+='</div>';
+
+      /* Products */
+      if(data.productos&&data.productos.length){
+        html+='<div class="track-card">';
+        html+='<div class="track-card-title"><i class="fas fa-shopping-bag"></i> TU PEDIDO</div>';
+        let total=0;
+        data.productos.forEach(item=>{
+          const sub=(item.precio||0)*(item.cantidad||1);
+          total+=sub;
+          html+='<div class="track-product">';
+          if(item.imagen) html+='<img src="'+item.imagen+'" alt="'+item.nombre+'">';
+          html+='<div class="track-product-info">';
+          html+='<div class="track-product-name">'+item.nombre+'</div>';
+          html+='<div class="track-product-detail"><span class="qty">x'+item.cantidad+'</span> $'+(item.precio||0).toFixed(2)+' c/u</div>';
+          html+='</div>';
+          html+='<div class="track-product-sub">$'+sub.toFixed(2)+'</div>';
+          html+='</div>';
+        });
+        html+='<div class="track-total"><span>TOTAL</span><span>$'+total.toFixed(2)+' MXN</span></div>';
+        html+='</div>';
+      }
+
+      /* Delivery */
+      html+='<div class="track-card">';
+      html+='<div class="track-card-title"><i class="fas fa-location-dot"></i> DATOS DE ENTREGA</div>';
+      if(data.direccion) html+='<div class="track-info-row"><span class="label">Dirección</span><span class="value">'+data.direccion+'</span></div>';
+      if(data.colonia) html+='<div class="track-info-row"><span class="label">Colonia</span><span class="value">'+data.colonia+'</span></div>';
+      if(data.referencias) html+='<div class="track-info-row"><span class="label">Referencias</span><span class="value">'+data.referencias+'</span></div>';
+      if(data.pago) html+='<div class="track-info-row"><span class="label">Pago</span><span class="value">'+data.pago+'</span></div>';
+      if(data.gpsLat&&data.gpsLng){
+        html+='<a class="track-map-btn" href="https://maps.google.com/?q='+data.gpsLat+','+data.gpsLng+'" target="_blank"><i class="fas fa-map-location-dot"></i> Ver ubicación del pedido</a>';
+      }
+      html+='</div>';
+
+      /* Footer */
+      html+='<div class="track-footer">Medio Urbano &copy; '+new Date().getFullYear()+' &middot; <a href="test.html">Volver al men&uacute;</a></div>';
+
+      document.getElementById("trackApp").innerHTML=html;
+    }
+
+    /* Init */
+    const orderId=getOrderId();
+    if(!orderId){
+      showError("No se proporcionó un ID de pedido v&aacute;lido.");
+    }else{
+      showLoading();
+      let logoLoaded=false;
+      let orderData=null;
+      let docId=null;
+      let unsub=null;
+
+      function tryRender(){
+        if(orderData&&logoLoaded!==false){
+          renderPage(orderId,orderData,logoLoaded);
+        }
+      }
+
+      function setupListener(ref){
+        unsub=ref.onSnapshot(doc=>{
+          if(!doc.exists){
+            showError("El pedido no fue encontrado en el sistema.");
+            return;
+          }
+          orderData={id:doc.id,...doc.data()};
+          docId=doc.id;
+          document.title="Pedido #"+(orderData.pedidoId||orderId.substring(0,8).toUpperCase())+" - Medio Urbano";
+          if(!logoLoaded){
+            const marca=orderData.marca||null;
+            if(marca){
+              getLogo(marca).then(url=>{logoLoaded=url||null;tryRender();});
+            }else{
+              logoLoaded=null;
+            }
+          }
+          tryRender();
+        },err=>{
+          showError("Error al conectar con el servidor. Intenta recargar la p&aacute;gina.");
+        });
+      }
+
+      if(orderId.startsWith("MU-")){
+        firebase.firestore().collection("pedidos").where("pedidoId","==",orderId).limit(1).get()
+          .then(snap=>{
+            if(!snap.empty){
+              setupListener(firebase.firestore().collection("pedidos").doc(snap.docs[0].id));
+            }else{
+              firebase.firestore().collection("pedidos").doc(orderId).get()
+                .then(doc=>{
+                  if(doc.exists) setupListener(firebase.firestore().collection("pedidos").doc(doc.id));
+                  else showError("El pedido no fue encontrado en el sistema.");
+                }).catch(()=>showError("Error al buscar el pedido."));
+            }
+          }).catch(()=>{
+            setupListener(firebase.firestore().collection("pedidos").doc(orderId));
+          });
+      }else{
+        setupListener(firebase.firestore().collection("pedidos").doc(orderId));
+      }
+    }
+  </script>
+</body>
+</html>

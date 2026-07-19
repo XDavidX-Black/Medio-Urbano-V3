@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prueba de Transparencia - Logos</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0a0a; color:#fff; font-family:Arial,sans-serif; padding:30px; }
+  h1 { text-align:center; margin-bottom:10px; color:#FFD028; }
+  .subtitle { text-align:center; color:#888; margin-bottom:30px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:25px; max-width:1200px; margin:0 auto; }
+  .card { background:#1a1a1a; border-radius:16px; padding:25px; text-align:center; border:1px solid rgba(255,255,255,.08); }
+  .card h3 { color:#FFD028; margin-bottom:15px; font-size:14px; letter-spacing:2px; }
+  .img-box { width:180px; height:120px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border-radius:12px; overflow:hidden; }
+  .img-box.checker { background:repeating-conic-gradient(#808080 0% 25%, #c0c0c0 0% 50%) 50%/20px 20px; }
+  .img-box.solid-black { background:#000; }
+  .img-box.solid-white { background:#fff; }
+  .img-box.solid-gray { background:#1a1a1a; }
+  .img-box img { max-width:100%; max-height:100%; object-fit:contain; }
+  .label { font-size:11px; color:#666; margin-top:5px; }
+  .result { margin-top:10px; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; }
+  .result.ok { background:rgba(34,197,94,.15); color:#22c55e; }
+  .result.fail { background:rgba(239,68,68,.15); color:#ef4444; }
+  .section-title { grid-column:1/-1; text-align:center; color:#888; font-size:12px; letter-spacing:3px; padding:10px 0; border-top:1px solid rgba(255,255,255,.06); margin-top:10px; }
+  .upload-zone { grid-column:1/-1; background:#111; border:2px dashed #333; border-radius:16px; padding:40px; text-align:center; cursor:pointer; transition:border-color .3s; }
+  .upload-zone:hover { border-color:#FFD028; }
+  .upload-zone input { display:none; }
+  .upload-zone p { color:#888; }
+  .pipeline { grid-column:1/-1; background:#111; border-radius:16px; padding:25px; margin-top:10px; }
+  .pipeline h3 { color:#FFD028; margin-bottom:15px; font-size:14px; }
+  .pipeline-steps { display:flex; gap:15px; flex-wrap:wrap; align-items:center; justify-content:center; }
+  .pipeline-step { text-align:center; }
+  .pipeline-step .img-box { width:120px; height:80px; }
+  .pipeline-step .label { font-size:10px; color:#666; }
+  .arrow { color:#FFD028; font-size:20px; }
+  .summary { grid-column:1/-1; background:#111; border-radius:16px; padding:20px; margin-top:10px; }
+  .summary h3 { color:#FFD028; margin-bottom:10px; font-size:14px; }
+  .summary table { width:100%; border-collapse:collapse; }
+  .summary td, .summary th { padding:8px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.06); font-size:13px; }
+  .summary th { color:#888; }
+</style>
+</head>
+<body>
+
+<h1>PRUEBA DE TRANSPARENCIA</h1>
+<p class="subtitle">Verifica que los logos conservan transparencia despues de la compresion</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const logos = [
+  { key:"marca", label:"Logo Principal", file:"img/logo-marca.png" },
+  { key:"cocina", label:"Cocina", file:"img/logo-cocina.png" },
+  { key:"salad", label:"Salad", file:"img/logo-salad.png" },
+  { key:"burgers", label:"Burgers", file:"img/logo-burgers.png" },
+  { key:"pasta", label:"Pasta", file:"img/logo-pasta.png" }
+];
+
+const grid = document.getElementById("grid");
+
+// Section: Original PNGs
+grid.innerHTML += '<div class="section-title">PNG ORIGINALES (sin compresion)</div>';
+
+logos.forEach(logo => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <h3>${logo.label}</h3>
+    <div class="img-box checker">
+      <img src="${logo.file}" alt="${logo.label}" onload="checkOriginal(this,'${logo.key}')" onerror="this.parentElement.innerHTML='<span style=\\'color:#ef4444\\'>Error al cargar</span>'">
+    </div>
+    <div class="label">Fondo: tablero de ajedrez = transparencia</div>
+    <div class="result" id="orig-${logo.key}">Verificando...</div>
+  `;
+  grid.appendChild(card);
+});
+
+function checkOriginal(img, key) {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  let hasTransparent = false;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 255) { hasTransparent = true; break; }
+  }
+  const el = document.getElementById("orig-" + key);
+  if (hasTransparent) {
+    el.className = "result ok";
+    el.textContent = "Tiene transparencia (canal alfa detectado)";
+  } else {
+    el.className = "result fail";
+    el.textContent = "Sin transparencia (canal alfa ausente)";
+  }
+}
+
+// Section: Compressed with NEW code (image/png)
+grid.innerHTML += '<div class="section-title">COMPRIMIDO CON CODIGO CORREGIDO (image/png)</div>';
+
+logos.forEach(logo => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.id = "compressed-png-" + logo.key;
+  card.innerHTML = `
+    <h3>${logo.label}</h3>
+    <div class="img-box checker">
+      <img id="img-png-${logo.key}" style="display:none;">
+      <span id="placeholder-png-${logo.key}" style="color:#666;">Cargando...</span>
+    </div>
+    <div class="label">Compresion: image/png (nuevo)</div>
+    <div class="result" id="result-png-${logo.key}">Procesando...</div>
+  `;
+  grid.appendChild(card);
+
+  compressAndTest(logo.file, "png", logo.key);
+});
+
+// Section: Compressed with OLD code (image/jpeg) for comparison
+grid.innerHTML += '<div class="section-title">COMPARACION: COMPRIMIDO CON CODIGO ANTERIOR (image/jpeg)</div>';
+
+logos.forEach(logo => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <h3>${logo.label}</h3>
+    <div class="img-box checker">
+      <img id="img-jpeg-${logo.key}" style="display:none;">
+      <span id="placeholder-jpeg-${logo.key}" style="color:#666;">Cargando...</span>
+    </div>
+    <div class="label">Compresion: image/jpeg (antiguo)</div>
+    <div class="result" id="result-jpeg-${logo.key}">Procesando...</div>
+  `;
+  grid.appendChild(card);
+
+  compressAndTest(logo.file, "jpeg", logo.key);
+});
+
+function compressAndTest(fileSrc, format, key) {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = function() {
+    const canvas = document.createElement("canvas");
+    let w = img.width, h = img.height;
+    const maxW = 600, maxH = 300;
+    if (w > maxW) { h = h * maxW / w; w = maxW; }
+    if (h > maxH) { w = w * maxH / h; h = maxH; }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    // NO fillStyle, NO fillRect — same as production code
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const mimeType = format === "png" ? "image/png" : "image/jpeg";
+    const quality = format === "jpeg" ? 0.7 : undefined;
+    const dataUrl = format === "jpeg"
+      ? canvas.toDataURL("image/jpeg", quality)
+      : canvas.toDataURL("image/png");
+
+    // Show the compressed image
+    const preview = document.getElementById("img-" + format + "-" + key);
+    const placeholder = document.getElementById("placeholder-" + format + "-" + key);
+    if (preview) { preview.src = dataUrl; preview.style.display = "block"; }
+    if (placeholder) placeholder.style.display = "none";
+
+    // Analyze the result
+    const testCanvas = document.createElement("canvas");
+    testCanvas.width = canvas.width;
+    testCanvas.height = canvas.height;
+    const testCtx = testCanvas.getContext("2d");
+
+    const compressedImg = new Image();
+    compressedImg.onload = function() {
+      testCtx.drawImage(compressedImg, 0, 0);
+      const data = testCtx.getImageData(0, 0, testCanvas.width, testCanvas.height).data;
+      let hasTransparent = false;
+      let transparentCount = 0;
+      let totalPixels = data.length / 4;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) { hasTransparent = true; transparentCount++; }
+      }
+      const transparencyPercent = ((transparentCount / totalPixels) * 100).toFixed(1);
+
+      const el = document.getElementById("result-" + format + "-" + key);
+      if (format === "png") {
+        if (hasTransparent) {
+          el.className = "result ok";
+          el.textContent = "PNG OK — Transparencia preservada (" + transparencyPercent + "% transparentes)";
+        } else {
+          el.className = "result fail";
+          el.textContent = "PNG FAIL — Sin transparencia detectada";
+        }
+      } else {
+        if (hasTransparent) {
+          el.className = "result ok";
+          el.textContent = "JPEG inesperado — Tiene transparencia";
+        } else {
+          el.className = "result fail";
+          el.textContent = "JPEG SIN transparencia (fondo negro)";
+        }
+      }
+    };
+    compressedImg.src = dataUrl;
+  };
+  img.onerror = function() {
+    const el = document.getElementById("result-" + format + "-" + key);
+    if (el) { el.className = "result fail"; el.textContent = "Error al cargar imagen original"; }
+  };
+  img.src = fileSrc;
+}
+
+// Summary table
+setTimeout(() => {
+  const summary = document.createElement("div");
+  summary.className = "summary";
+  summary.innerHTML = `
+    <h3>RESUMEN DE VERIFICACION</h3>
+    <table>
+      <thead><tr><th>Logo</th><th>PNG Original</th><th>Comprimido (PNG)</th><th>Comprimido (JPEG)</th></tr></thead>
+      <tbody id="summary-body"></tbody>
+    </table>
+  `;
+  grid.appendChild(summary);
+
+  logos.forEach(logo => {
+    const tbody = document.getElementById("summary-body");
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${logo.label}</td><td id="sum-orig-${logo.key}">...</td><td id="sum-png-${logo.key}">...</td><td id="sum-jpeg-${logo.key}">...</td>`;
+    tbody.appendChild(row);
+  });
+}, 500);
+
+setTimeout(() => {
+  logos.forEach(logo => {
+    ["orig", "png", "jpeg"].forEach(type => {
+      const el = document.getElementById("result-" + (type === "orig" ? "" : type + "-") + logo.key) || document.getElementById("result-" + logo.key);
+      const sumEl = document.getElementById("sum-" + (type === "orig" ? "orig" : type) + "-" + logo.key);
+      if (sumEl && el) {
+        sumEl.textContent = el.textContent;
+        sumEl.style.color = el.classList.contains("ok") ? "#22c55e" : "#ef4444";
+      }
+    });
+  });
+}, 3000);
+</script>
+</body>
+</html>
