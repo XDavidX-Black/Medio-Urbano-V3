@@ -85,7 +85,9 @@
       position:fixed;inset:0;z-index:9999;
       background:var(--dark);
       display:flex;align-items:center;justify-content:center;
+      transition:opacity .4s ease,visibility .4s ease;
     }
+    .loader.hidden{opacity:0;visibility:hidden;pointer-events:none;}
     .loader-content{text-align:center;}
     .loader-content img{
       height:120px;margin-bottom:30px;
@@ -536,6 +538,29 @@
     }
     #backTop.active{opacity:1;visibility:visible;transform:translateY(0);}
     #backTop:hover{background:#ffe46d;}
+
+    /*========================
+    MOBILE CART FAB
+    ========================*/
+    #mobileCartFab{
+      display:none;position:fixed;right:20px;bottom:25px;
+      width:60px;height:60px;border-radius:50%;
+      background:var(--primary);color:#111;border:none;
+      font-size:22px;cursor:pointer;z-index:900;
+      box-shadow:0 8px 24px rgba(255,208,40,.35);
+      transition:.3s;
+    }
+    #mobileCartFab:active{transform:scale(.92);}
+    #mobileCartFab .fab-badge{
+      position:absolute;top:-6px;right:-6px;
+      min-width:22px;height:22px;padding:0 6px;
+      display:flex;align-items:center;justify-content:center;
+      background:#c62828;color:#fff;
+      font-size:11px;font-weight:700;border-radius:999px;
+    }
+    @media (max-width:576px){
+      #mobileCartFab{display:flex;align-items:center;justify-content:center;}
+    }
 
     /*====================================================
     responsive.css
@@ -1549,6 +1574,12 @@
   <!-- BACK TO TOP -->
   <button type="button" id="backTop"><i class="fas fa-arrow-up"></i></button>
 
+  <!-- MOBILE CART FAB -->
+  <button type="button" id="mobileCartFab">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="fab-badge">0</span>
+  </button>
+
   <!--====================================================
   app.js - MEDIO URBANO V3
   ====================================================-->
@@ -1558,8 +1589,7 @@
     window.addEventListener("load",()=>{
       const loader=document.getElementById("loader");
       setTimeout(()=>{
-        loader.style.opacity="0";
-        loader.style.visibility="hidden";
+        loader.classList.add("hidden");
       },1200);
     });
 
@@ -1589,19 +1619,20 @@
     // CART PANEL OPEN/CLOSE
     const cart=document.querySelector(".cart-panel");
     const overlay=document.querySelector(".overlay");
-    document.querySelector(".btn-cart").addEventListener("click",()=>{
-      if(reopenActiveOrder()) return;
+    const mobileFab=document.getElementById("mobileCartFab");
+    function openCartPanel(){
+      if(typeof reopenActiveOrder==="function"&&reopenActiveOrder()) return;
       cart.classList.add("active");
       overlay.classList.add("active");
-    });
-    document.querySelector(".close-cart").addEventListener("click",()=>{
+    }
+    function closeCartPanel(){
       cart.classList.remove("active");
       overlay.classList.remove("active");
-    });
-    overlay.addEventListener("click",()=>{
-      cart.classList.remove("active");
-      overlay.classList.remove("active");
-    });
+    }
+    document.querySelector(".btn-cart").addEventListener("click",openCartPanel);
+    document.querySelector(".close-cart").addEventListener("click",closeCartPanel);
+    overlay.addEventListener("click",closeCartPanel);
+    if(mobileFab) mobileFab.addEventListener("click",openCartPanel);
 
     // SMOOTH SCROLL
     document.querySelectorAll('a[href^="#"]').forEach(anchor=>{
@@ -1750,16 +1781,21 @@
     }
 
     function agregarProducto(id){
+      console.log("[DEBUG-FLUJO] agregarProducto() iniciado. id:",id,"tipo:",typeof id);
+      let encontrado=false;
       Object.keys(categorias).forEach(c=>{
         if(categorias[c].productos){
           categorias[c].productos.forEach(p=>{
             if(p.id===id||p.id===String(id)||String(p.id)===String(id)){
-              if(p.estado===0) return;
+              encontrado=true;
+              console.log("[DEBUG-FLUJO] Producto encontrado:",p.nombre,"id:",p.id,"tipo:",typeof p.id,"estado:",p.estado);
+              if(p.estado===0){console.log("[DEBUG-FLUJO] Producto deshabilitado (estado=0). Abortando.");return;}
               agregarCarrito(p);
             }
           });
         }
       });
+      if(!encontrado) console.log("[DEBUG-FLUJO] Ningun producto coincide con id:",id,"Categorias:",Object.keys(categorias));
     }
 
     document.querySelectorAll(".brand").forEach(card=>{
@@ -1769,12 +1805,29 @@
     });
 
     //====================================================
+    // DEBUG: Capturar click/touch en botones de producto
+    //====================================================
+    document.addEventListener("click",function(e){
+      const btn=e.target.closest(".producto button");
+      if(btn){
+        console.log("[DEBUG-CLICK] Click recibido en boton producto. Texto:",btn.textContent.trim(),"Target:",e.target.tagName);
+      }
+    },true);
+    document.addEventListener("touchstart",function(e){
+      const btn=e.target.closest(".producto button");
+      if(btn){
+        console.log("[DEBUG-TOUCH] Touchstart recibido en boton producto. Texto:",btn.textContent.trim(),"Target:",e.target.tagName);
+      }
+    },true);
+
+    //====================================================
     // cart.js - MEDIO URBANO V3
     //====================================================
 
     let carrito=[];
 
     function agregarCarrito(producto){
+      console.log("[DEBUG-FLUJO] agregarCarrito() ejecutado. Producto:",producto.nombre,"id:",producto.id,"precio:",producto.precio,"tipo precio:",typeof producto.precio);
       const existe=carrito.find(item=>item.id===producto.id);
       if(existe){
         existe.cantidad++;
@@ -1816,11 +1869,14 @@
     }
 
     function renderCarrito(){
+      console.log("[DEBUG-FLUJO] renderCarrito() ejecutado. Items en carrito:",carrito.length);
       const body=document.querySelector(".cart-body");
       const total=document.querySelector(".cart-total strong");
       const badge=document.querySelector(".btn-cart span");
+      const fabBadge=document.querySelector("#mobileCartFab .fab-badge");
       body.innerHTML="";
       badge.innerHTML=carrito.length;
+      if(fabBadge) fabBadge.innerHTML=carrito.length;
       animarCarrito();
 
       if(carrito.length===0){
@@ -2467,7 +2523,7 @@
       btn.addEventListener("dblclick",e=>{e.preventDefault();});
     });
 
-    window.addEventListener("error",(e)=>{console.warn("Error detectado:",e.message);});
+    window.addEventListener("error",(e)=>{console.error("[DEBUG-ERROR] Error global capturado:",{message:e.message,source:e.filename,line:e.lineno,col:e.colno,error:e.error});});
     const yearEl=document.getElementById("year");if(yearEl) yearEl.textContent=new Date().getFullYear();
     // FIN
   </script>
@@ -2584,6 +2640,205 @@
           .catch(err=>{console.log(err);});
       });
     }
+  </script>
+
+  <!-- ============================================================
+       DEBUG PANEL TEMPORAL - MOBILE TOUCH DIAGNOSTICS
+       Para desactivar: cambiar DEBUG_MOBILE = false
+       ============================================================ -->
+  <script>
+    (function(){
+      var DEBUG_MOBILE = true;
+      if(!DEBUG_MOBILE) return;
+
+      // --- Crear panel DOM ---
+      var panel = document.createElement("div");
+      panel.id = "debugPanel";
+      panel.innerHTML =
+        '<div id="debugPanelHeader">' +
+          '<span style="flex:1;font-weight:700;font-size:11px;">MOBILE DEBUG PANEL</span>' +
+          '<button id="debugPanelClear" style="background:#333;color:#0f0;border:1px solid #0f0;padding:2px 8px;font-size:10px;cursor:pointer;margin-right:4px;">Limpiar</button>' +
+          '<button id="debugPanelHide" style="background:#333;color:#0f0;border:1px solid #0f0;padding:2px 8px;font-size:10px;cursor:pointer;">Ocultar</button>' +
+        '</div>' +
+        '<div id="debugPanelBody"></div>';
+      document.body.appendChild(panel);
+
+      var style = document.createElement("style");
+      style.textContent =
+        '#debugPanel{' +
+          'position:fixed;top:0;right:0;width:100%;max-width:420px;height:50vh;' +
+          'background:rgba(0,0,0,0.88);color:#0f0;font-family:monospace;font-size:10px;' +
+          'z-index:999999;overflow:hidden;display:flex;flex-direction:column;' +
+          'border-bottom-left-radius:8px;box-shadow:0 0 20px rgba(0,255,0,0.2);' +
+        '}' +
+        '#debugPanel.debug-hidden{display:none;}' +
+        '#debugPanelHeader{' +
+          'display:flex;align-items:center;padding:6px 8px;background:rgba(0,30,0,0.9);' +
+          'border-bottom:1px solid #0f0;flex-shrink:0;' +
+        '}' +
+        '#debugPanelBody{' +
+          'flex:1;overflow-y:auto;padding:6px 8px;scroll-behavior:smooth;' +
+        '}' +
+        '.debug-entry{' +
+          'border-bottom:1px solid #0a3a0a;padding:4px 0;word-wrap:break-word;' +
+        '}' +
+        '.debug-entry.debug-error{' +
+          'color:#f44;border-bottom-color:#a00;background:rgba(255,0,0,0.08);' +
+        '}' +
+        '.debug-entry.debug-event{' +
+          'color:#0af;' +
+        '}' +
+        '.debug-entry.debug-flow{' +
+          'color:#0f0;' +
+        '}' +
+        '.debug-ts{color:#888;font-size:9px;}';
+      document.head.appendChild(style);
+
+      var panelBody = document.getElementById("debugPanelBody");
+      var panelVisible = true;
+
+      function ts(){
+        var d=new Date();
+        return d.toLocaleTimeString("es-MX",{hour12:false})+"."+
+          String(d.getMilliseconds()).padStart(3,"0");
+      }
+
+      function addEntry(text, cls){
+        if(!panelVisible) return;
+        var div=document.createElement("div");
+        div.className="debug-entry "+(cls||"");
+        div.innerHTML='<span class="debug-ts">['+ts()+']</span> '+text;
+        panelBody.appendChild(div);
+        panelBody.scrollTop=panelBody.scrollHeight;
+      }
+
+      function addSeparator(){
+        addEntry('<span style="color:#333;">--------------------------------</span>','');
+      }
+
+      function addEventEntry(evtName, e){
+        var t=e.target;
+        var idAttr=t.id?' id="'+t.id+'"':'';
+        var clsAttr=t.className?' class="'+String(t.className).substring(0,60)+'"':'';
+        var tag=t.tagName;
+        var html='<b style="color:#0af;">EVENTO: '+evtName.toUpperCase()+'</b><br>'+
+          'Elemento: &lt;'+tag+idAttr+clsAttr+'&gt;';
+        if(t.closest){
+          var prod=t.closest(".producto");
+          if(prod){
+            var btn=t.closest(".producto button");
+            html+='<br>Contexto: .producto'+(btn?' (dentro de boton)':'');
+          }
+        }
+        if(e.touches && e.touches.length>0){
+          html+='<br>Touch X:'+Math.round(e.touches[0].clientX)+' Y:'+Math.round(e.touches[0].clientY);
+        }else if(e.changedTouches && e.changedTouches.length>0){
+          html+='<br>Touch X:'+Math.round(e.changedTouches[0].clientX)+' Y:'+Math.round(e.changedTouches[0].clientY);
+        }
+        addEntry(html,'debug-event');
+      }
+
+      function addElementFromPoint(e){
+        var touch=null;
+        if(e.touches && e.touches.length>0) touch=e.touches[0];
+        else if(e.changedTouches && e.changedTouches.length>0) touch=e.changedTouches[0];
+        if(!touch) return;
+        var el=document.elementFromPoint(touch.clientX,touch.clientY);
+        if(!el) return;
+        var idAttr=el.id?' id="'+el.id+'"':'';
+        var clsAttr=el.className?' class="'+String(el.className).substring(0,80)+'"':'';
+        addEntry(
+          '<b style="color:#ff0;">elementFromPoint()</b><br>'+
+          'X:'+Math.round(touch.clientX)+' Y:'+Math.round(touch.clientY)+'<br>'+
+          'Elemento real: &lt;'+el.tagName+idAttr+clsAttr+'&gt;<br>'+
+          'textContent: "'+(el.textContent||'').substring(0,80).trim()+'"',
+          'debug-event'
+        );
+      }
+
+      // --- Interceptar console.log existente para reflejar en panel ---
+      var origLog=console.log.bind(console);
+      console.log=function(){
+        origLog.apply(console,arguments);
+        var args=Array.prototype.slice.call(arguments);
+        var msg=args.map(function(a){
+          if(typeof a==="object"){
+            try{return JSON.stringify(a).substring(0,200);}
+            catch(e){return String(a);}
+          }
+          return String(a);
+        }).join(" ");
+        if(msg.indexOf("[DEBUG-")===0){
+          var cls="debug-flow";
+          if(msg.indexOf("[DEBUG-CLICK]")===0||msg.indexOf("[DEBUG-TOUCH]")===0) cls="debug-event";
+          addEntry(msg.replace(/</g,"&lt;").replace(/>/g,"&gt;"),cls);
+        }
+      };
+
+      // --- Interceptar console.error existente ---
+      var origErr=console.error.bind(console);
+      console.error=function(){
+        origErr.apply(console,arguments);
+        var args=Array.prototype.slice.call(arguments);
+        var msg=args.map(function(a){
+          if(typeof a==="object"){
+            try{return JSON.stringify(a).substring(0,300);}
+            catch(e){return String(a);}
+          }
+          return String(a);
+        }).join(" ");
+        addEntry('<b style="color:#f44;">ERROR</b><br>'+msg.replace(/</g,"&lt;").replace(/>/g,"&gt;"),'debug-error');
+      };
+
+      // --- Eventos de pointer/touch/click en capture phase ---
+      ["pointerdown","pointerup","touchstart","touchend","click"].forEach(function(evtName){
+        document.addEventListener(evtName,function(e){
+          if(!panelVisible) return;
+          addEventEntry(evtName,e);
+          if(evtName==="touchstart"||evtName==="touchend"){
+            addElementFromPoint(e);
+          }
+          addSeparator();
+        },true);
+      });
+
+      // --- Capturar errores JS con stack completo ---
+      window.addEventListener("error",function(e){
+        var stack="";
+        if(e.error && e.error.stack) stack=e.error.stack;
+        addEntry(
+          '<b style="color:#f44;">JS ERROR CAPTURADO</b><br>'+
+          'Mensaje: '+(e.message||'N/A')+'<br>'+
+          'Archivo: '+(e.filename||'N/A')+'<br>'+
+          'Linea: '+(e.lineno||'N/A')+' Col: '+(e.colno||'N/A')+
+          (stack?'<br>Stack:<br><pre style="color:#f66;font-size:9px;white-space:pre-wrap;margin:2px 0;">'+stack.replace(/</g,"&lt;")+'</pre>':''),
+          'debug-error'
+        );
+      },false);
+
+      window.addEventListener("unhandledrejection",function(e){
+        addEntry(
+          '<b style="color:#f44;">PROMISE REJECTED</b><br>'+
+          'Razon: '+(e.reason?String(e.reason).substring(0,200):'N/A'),
+          'debug-error'
+        );
+      },false);
+
+      // --- Botones ---
+      document.getElementById("debugPanelClear").addEventListener("click",function(){
+        panelBody.innerHTML="";
+        addEntry('<b style="color:#0f0;">Panel limpiado</b>','debug-flow');
+      });
+
+      document.getElementById("debugPanelHide").addEventListener("click",function(){
+        panel.classList.toggle("debug-hidden");
+        panelVisible=!panelVisible;
+        this.textContent=panelVisible?"Ocultar":"Mostrar";
+      });
+
+      addEntry('<b style="color:#0f0;">DEBUG PANEL ACTIVO</b><br>Touch o click en productos para diagnosticar.','debug-flow');
+      addSeparator();
+    })();
   </script>
 </body>
 </html>
