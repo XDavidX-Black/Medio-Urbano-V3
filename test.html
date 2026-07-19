@@ -911,6 +911,66 @@
       .tracking-line{left:10%;right:10%;}
     }
 
+    /*========================
+    ORDER DIALOG
+    ========================*/
+    .order-dialog-modal{
+      position:fixed;inset:0;z-index:10000;
+      display:none;align-items:center;justify-content:center;
+      padding:20px;
+      background:rgba(0,0,0,.80);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    }
+    .order-dialog-modal.active{display:flex;}
+    .order-dialog-content{
+      width:100%;max-width:420px;
+      background:#151515;border-radius:24px;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 30px 60px rgba(0,0,0,.6);
+      padding:40px 32px 32px;
+      text-align:center;
+      animation:orderDialogIn .3s ease;
+    }
+    @keyframes orderDialogIn{from{opacity:0;transform:scale(.92) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .order-dialog-icon{
+      width:70px;height:70px;margin:0 auto 20px;
+      border-radius:50%;
+      background:rgba(255,208,40,.1);
+      border:2px solid var(--primary);
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;color:var(--primary);
+    }
+    .order-dialog-title{
+      font-family:var(--font-title);font-size:26px;letter-spacing:2px;
+      color:#fff;margin-bottom:10px;
+    }
+    .order-dialog-message{
+      font-size:14px;color:#999;line-height:1.6;margin-bottom:28px;
+    }
+    .order-dialog-actions{
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .order-dialog-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      padding:14px 24px;border-radius:14px;border:none;
+      font-family:var(--font-body);font-size:14px;font-weight:700;
+      cursor:pointer;transition:.3s;width:100%;
+    }
+    .order-dialog-btn-primary{
+      background:var(--primary);color:#111;
+    }
+    .order-dialog-btn-primary:hover{background:#ffe46d;transform:translateY(-2px);}
+    .order-dialog-btn-secondary{
+      background:rgba(255,255,255,.06);color:#ccc;
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .order-dialog-btn-secondary:hover{background:rgba(255,255,255,.1);color:#fff;}
+    .order-dialog-btn i{font-size:16px;}
+    @media(max-width:600px){
+      .order-dialog-content{padding:32px 24px 24px;border-radius:20px;}
+      .order-dialog-title{font-size:22px;}
+      .order-dialog-btn{padding:12px 20px;font-size:13px;}
+    }
+
     @media(max-width:600px){
       .order-modal-content{max-height:95vh;border-radius:20px;}
       .order-modal-header{padding:24px 20px 0;}
@@ -1570,6 +1630,23 @@
 
   <!-- OVERLAY -->
   <div class="overlay"></div>
+
+  <!-- ORDER DIALOG -->
+  <div class="order-dialog-modal" id="orderDialogModal">
+    <div class="order-dialog-content">
+      <div class="order-dialog-icon"><i class="fas fa-clock-rotate-left"></i></div>
+      <div class="order-dialog-title">Tienes un pedido en curso</div>
+      <div class="order-dialog-message">Hemos detectado que todavía tienes un pedido activo.<br>¿Qué deseas hacer?</div>
+      <div class="order-dialog-actions">
+        <button type="button" class="order-dialog-btn order-dialog-btn-primary" id="dialogContinueTracking">
+          <i class="fas fa-location-dot"></i> Continuar seguimiento
+        </button>
+        <button type="button" class="order-dialog-btn order-dialog-btn-secondary" id="dialogNewOrder">
+          <i class="fas fa-burger"></i> Realizar un nuevo pedido
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- BACK TO TOP -->
   <button type="button" id="backTop"><i class="fas fa-arrow-up"></i></button>
@@ -2422,6 +2499,14 @@
     function reopenActiveOrder(){
       const orderId=localStorage.getItem("muActiveOrder");
       if(!orderId) return false;
+      document.getElementById("orderDialogModal").classList.add("active");
+      return true;
+    }
+
+    function resumeActiveOrder(){
+      const orderId=localStorage.getItem("muActiveOrder");
+      if(!orderId){document.getElementById("orderDialogModal").classList.remove("active");return;}
+      document.getElementById("orderDialogModal").classList.remove("active");
       openOrderModal();
       if(typeof firebase!=="undefined"&&firebase.firestore){
         firebase.firestore().collection("pedidos").doc(orderId).get()
@@ -2432,8 +2517,24 @@
       }else{
         showOrderTracking(orderId);
       }
-      return true;
     }
+
+    function resetOrderFlow(){
+      document.getElementById("orderDialogModal").classList.remove("active");
+      if(activeOrderUnsub){activeOrderUnsub();activeOrderUnsub=null;}
+      localStorage.removeItem("muActiveOrder");
+      openOrderModal();
+    }
+
+    document.getElementById("dialogContinueTracking").addEventListener("click",resumeActiveOrder);
+    document.getElementById("dialogNewOrder").addEventListener("click",resetOrderFlow);
+    document.getElementById("orderDialogModal").addEventListener("click",e=>{
+      if(e.target===document.getElementById("orderDialogModal")){
+        document.getElementById("orderDialogModal").classList.remove("active");
+        cart.classList.add("active");
+        overlay.classList.add("active");
+      }
+    });
 
     document.getElementById("orderModalClose").addEventListener("click",closeOrderModal);
     document.getElementById("orderModal").addEventListener("click",e=>{if(e.target===document.getElementById("orderModal"))closeOrderModal();});
