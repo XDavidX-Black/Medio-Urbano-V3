@@ -3,6 +3,7 @@
 // ============================================
 
 let db = null;
+let auth = null;
 
 try {
   const firebaseConfig = {
@@ -16,9 +17,11 @@ try {
 
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
+  auth = firebase.auth();
 } catch (e) {
   console.warn('Firebase init failed:', e);
   db = null;
+  auth = null;
 }
 
 document.dispatchEvent(new Event('firebase-ready'));

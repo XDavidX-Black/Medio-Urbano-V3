@@ -3,28 +3,59 @@ admin.js - MEDIO URBANO V3
 CRUD Productos via Firestore (real-time sync)
 =====================================================*/
 
-const ADMIN_PASSWORD="medio123";
-
 function login(){
+  const email=document.getElementById("email").value.trim();
   const password=document.getElementById("password").value;
-  const stored=localStorage.getItem("adminPassword")||ADMIN_PASSWORD;
-  if(password===stored){
-    localStorage.setItem("admin","true");
-    window.location="panel-v3.html";
-  }else{
-    alert("Contraseña incorrecta");
+  const errorEl=document.getElementById("loginError");
+  if(errorEl) errorEl.style.display="none";
+
+  if(!email||!password){
+    if(errorEl){errorEl.textContent="Ingresa correo y contraseña";errorEl.style.display="block";}
+    return;
   }
+
+  if(typeof firebase==="undefined"||!auth){
+    if(errorEl){errorEl.textContent="Firebase no disponible. Recarga la página.";errorEl.style.display="block";}
+    return;
+  }
+
+  auth.signInWithEmailAndPassword(email,password)
+    .then(()=>{
+      window.location="panel-v3.html";
+    })
+    .catch(err=>{
+      if(errorEl){
+        const msgs={
+          "auth/user-not-found":"No existe una cuenta con ese correo",
+          "auth/wrong-password":"Contraseña incorrecta",
+          "auth/invalid-email":"Correo inválido",
+          "auth/too-many-requests":"Demasiados intentos. Espera unos minutos",
+          "auth/invalid-credential":"Credenciales inválidas"
+        };
+        errorEl.textContent=msgs[err.code]||"Error al iniciar sesión";
+        errorEl.style.display="block";
+      }
+    });
 }
 
 if(location.pathname.includes("panel")){
-  if(localStorage.getItem("admin")!="true"){
+  if(typeof firebase==="undefined"||!auth){
     window.location="admin-v3.html";
+  } else {
+    auth.onAuthStateChanged(user=>{
+      if(!user) window.location="admin-v3.html";
+    });
   }
 }
 
 function logout(){
-  localStorage.removeItem("admin");
-  window.location="test.html";
+  if(typeof firebase!=="undefined"&&auth){
+    auth.signOut().then(()=>{
+      window.location="test.html";
+    });
+  } else {
+    window.location="test.html";
+  }
 }
 
 /* IMAGE UPLOAD HANDLING */

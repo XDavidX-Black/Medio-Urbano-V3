@@ -627,13 +627,29 @@ function cambiarPassword(){
   const actual=document.getElementById("segPasswordActual").value;
   const nueva=document.getElementById("segPasswordNueva").value;
   const confirm=document.getElementById("segPasswordConfirm").value;
-  if(actual!=="medio123"){alert("Contraseña actual incorrecta");return;}
-  if(!nueva){alert("Ingresa nueva contraseña");return;}
+  if(!actual||!nueva){alert("Completa los campos de contraseña");return;}
   if(nueva!==confirm){alert("Las contraseñas no coinciden");return;}
-  if(nueva.length<4){alert("Mínimo 4 caracteres");return;}
-  localStorage.setItem("adminPassword",nueva);
-  logAdminAction("seguridad","Contraseña cambiada","Acceso seguro verificado");
-  alert("Contraseña cambiada. Usa la nueva contraseña la próxima vez.");
+  if(nueva.length<6){alert("Mínimo 6 caracteres");return;}
+  if(typeof firebase==="undefined"||!auth||!auth.currentUser){alert("No hay sesión activa");return;}
+
+  const user=auth.currentUser;
+  const credential=firebase.auth.EmailAuthProvider.credential(user.email,actual);
+  user.reauthenticateWithCredential(credential)
+    .then(()=>user.updatePassword(nueva))
+    .then(()=>{
+      logAdminAction("seguridad","Contraseña cambiada","Cambio exitoso");
+      alert("Contraseña actualizada correctamente");
+      document.getElementById("segPasswordActual").value="";
+      document.getElementById("segPasswordNueva").value="";
+      document.getElementById("segPasswordConfirm").value="";
+    })
+    .catch(err=>{
+      const msgs={
+        "auth/wrong-password":"La contraseña actual es incorrecta",
+        "auth/weak-password":"La nueva contraseña es muy débil"
+      };
+      alert(msgs[err.code]||"Error: "+err.message);
+    });
 }
 
 /* ====================================================
