@@ -144,11 +144,11 @@ function verDetallePedido(id){
   if(p.comentarios) html+=`<div class="order-summary-row"><span class="label">Observaciones</span><span class="value">${p.comentarios}</span></div>`;
   html+=`<div class="order-summary-row"><span class="label">Fecha</span><span class="value">${f.toLocaleDateString()} ${f.toLocaleTimeString()}</span></div>`;
   content.innerHTML=html;
-  modal.classList.add("active");
+  modal.classList.add("show");
 }
 
 function closePedidoDetail(){
-  document.getElementById("pedidoDetailModal").classList.remove("active");
+  document.getElementById("pedidoDetailModal").classList.remove("show");
 }
 
 function eliminarPedido(id){

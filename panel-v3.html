@@ -34,8 +34,25 @@
     </ul>
   </aside>
   <main>
+    <div class="topbar">
+      <div class="topbar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar pedidos, productos, clientes...">
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-status"><span class="pulse"></span> En línea</div>
+        <button class="topbar-icon-btn" title="Notificaciones"><i class="fas fa-bell"></i><span class="dot"></span></button>
+        <button class="topbar-icon-btn" title="Actualizar" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+        <div class="topbar-profile" title="Administrador">A</div>
+      </div>
+    </div>
+    <div class="page-wrap">
     <!-- DASHBOARD -->
     <div id="sec-dashboard" class="dashboard-section">
+      <div class="page-title">
+        <h1>Dashboard Principal</h1>
+        <p>Bienvenido de vuelta, Administrador</p>
+      </div>
       <div class="dashboard">
         <div class="dashboard-cards" id="dashCards">
           <div class="card"><div><h2 id="statProductos">0</h2><span>Productos</span></div><i class="fas fa-utensils"></i></div>
@@ -523,6 +540,7 @@
         </div>
       </section>
     </div>
+    </div>
   </main>
 
   <!-- ORDER DETAIL MODAL -->
@@ -562,31 +580,28 @@
     initSocial();
   </script>
   <style>
-    aside li.active{background:var(--primary);color:#111;font-weight:700;}
-    aside li i{margin-right:10px;width:18px;text-align:center;}
-    aside li{display:flex;align-items:center;}
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:25px;}
-    .form-col label{display:block;color:#aaa;font-size:13px;margin-bottom:5px;margin-top:10px;}
+    .form-col label{display:block;color:#a7a7a7;font-size:12.5px;margin-bottom:6px;margin-top:12px;text-transform:uppercase;letter-spacing:.2px;}
     .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .chart-container{background:#141414;border-radius:20px;padding:30px;margin-top:20px;}
-    .chart{min-height:200px;display:flex;align-items:flex-end;gap:8px;padding:20px;}
-    .chart-bar{background:var(--primary);border-radius:6px 6px 0 0;flex:1;min-width:30px;transition:.3s;position:relative;}
-    .chart-bar:hover{opacity:.8;}
-    .chart-bar span{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:#aaa;white-space:nowrap;}
-    .status-badge{padding:6px 12px;border-radius:50px;font-size:12px;font-weight:700;display:inline-block;}
-    .status-pendiente{background:#ff9800;color:white;}
-    .status-preparando{background:#2196f3;color:white;}
-    .status-reparto{background:#9c27b0;color:white;}
-    .status-entregado{background:#35c759;color:white;}
-    .status-cancelado{background:#ff3b30;color:white;}
-    .cliente-card{background:#1a1a1a;border-radius:16px;padding:20px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06);}
-    .zona-card{background:#1a1a1a;border-radius:12px;padding:15px;margin-bottom:10px;border:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;}
+
+    .cliente-card{
+      background:var(--surface-2);border-radius:16px;padding:20px;margin-bottom:12px;
+      border:1px solid var(--border);transition:.2s;
+    }
+    .cliente-card:hover{border-color:rgba(255,208,40,.25);transform:translateY(-2px);}
+
+    .zona-card{
+      background:var(--surface-2);border-radius:14px;padding:16px 18px;margin-bottom:10px;
+      border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;
+    }
+
     .horario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
-    .horario-card{background:#1a1a1a;border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,.06);}
-    .horario-card h3{color:var(--primary);margin-bottom:15px;font-size:16px;}
+    .horario-card{background:var(--surface-2);border-radius:16px;padding:20px;border:1px solid var(--border);}
+    .horario-card h3{color:var(--primary);margin-bottom:15px;font-size:15px;font-weight:700;}
     .horario-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;color:#ccc;}
-    .horario-row label{min-width:60px;}
-    .horario-row input{padding:8px;width:90px;background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;color:white;font-size:13px;}
+    .horario-row label{min-width:60px;margin:0;text-transform:none;}
+    .horario-row input{padding:8px;width:90px;background:var(--dark);border:1px solid var(--border);border-radius:8px;color:white;font-size:13px;margin:0;}
+
     @media(max-width:900px){
       .form-grid{grid-template-columns:1fr;}
       .form-row-2{grid-template-columns:1fr;}
