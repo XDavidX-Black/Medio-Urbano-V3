@@ -65,13 +65,13 @@ function renderPedidosPanel(){
     container.innerHTML+=`
       <div class="cliente-card">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-          <span class="status-badge ${cls}">${estado}</span>
-          <strong style="flex:1;">${p.cliente||"Sin nombre"}</strong>
+          <span class="status-badge ${cls}">${esc(estado)}</span>
+          <strong style="flex:1;">${esc(p.cliente||"Sin nombre")}</strong>
           <span style="color:var(--primary);font-weight:700;">$${(p.total||0).toFixed(2)}</span>
         </div>
         <div style="display:flex;gap:15px;font-size:13px;color:#888;flex-wrap:wrap;margin-bottom:10px;">
-          <span><i class="fas fa-phone" style="margin-right:4px;"></i>${p.telefono||"-"}</span>
-          <span><i class="fas fa-store" style="margin-right:4px;"></i>${marcaLabel}</span>
+          <span><i class="fas fa-phone" style="margin-right:4px;"></i>${esc(p.telefono||"-")}</span>
+          <span><i class="fas fa-store" style="margin-right:4px;"></i>${esc(marcaLabel)}</span>
           <span><i class="fas fa-clock" style="margin-right:4px;"></i>${f.toLocaleDateString()} ${f.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -98,7 +98,7 @@ function renderPedidosFull(){
   recent.forEach(p=>{
     const estado=p.estado||"Pendiente";
     const cls="status-"+(estado.toLowerCase().replace(" ",""));
-    el.innerHTML+=`<div class="order"><div><strong>${p.cliente||"-"}</strong><br><small>${p.marca||"general"}</small></div><div>$${(p.total||0).toFixed(0)}</div><div><span class="status-badge ${cls}">${estado}</span></div></div>`;
+    el.innerHTML+=`<div class="order"><div><strong>${esc(p.cliente||"-")}</strong><br><small>${esc(p.marca||"general")}</small></div><div>$${(p.total||0).toFixed(0)}</div><div><span class="status-badge ${cls}">${esc(estado)}</span></div></div>`;
   });
 }
 
@@ -123,25 +123,25 @@ function verDetallePedido(id){
   const f=p.fecha?new Date(p.fecha):new Date();
   let html=`
     <h2 style="color:var(--primary);margin-bottom:20px;font-family:'Bebas Neue';">Detalle del Pedido</h2>
-    <div class="order-summary-row"><span class="label">Cliente</span><span class="value">${p.cliente||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">WhatsApp</span><span class="value">${p.telefono||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">Marca</span><span class="value">${marcaLabel}</span></div>
-    <div class="order-summary-row"><span class="label">Estado</span><span class="value">${p.estado||"Pendiente"}</span></div>
+    <div class="order-summary-row"><span class="label">Cliente</span><span class="value">${esc(p.cliente||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">WhatsApp</span><span class="value">${esc(p.telefono||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">Marca</span><span class="value">${esc(marcaLabel)}</span></div>
+    <div class="order-summary-row"><span class="label">Estado</span><span class="value">${esc(p.estado||"Pendiente")}</span></div>
     <hr class="order-summary-divider">
-    <div class="order-summary-row"><span class="label">Dirección</span><span class="value">${p.direccion||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">Colonia</span><span class="value">${p.colonia||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">CP</span><span class="value">${p.cp||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">Referencias</span><span class="value">${p.referencias||"-"}</span></div>
-    <div class="order-summary-row"><span class="label">Pago</span><span class="value">${p.pago||"-"}</span></div>
+    <div class="order-summary-row"><span class="label">Dirección</span><span class="value">${esc(p.direccion||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">Colonia</span><span class="value">${esc(p.colonia||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">CP</span><span class="value">${esc(p.cp||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">Referencias</span><span class="value">${esc(p.referencias||"-")}</span></div>
+    <div class="order-summary-row"><span class="label">Pago</span><span class="value">${esc(p.pago||"-")}</span></div>
     <hr class="order-summary-divider">
     <div class="order-summary-products">`;
   (p.productos||[]).forEach(item=>{
-    html+=`<div class="order-summary-product"><span><span class="qty">x${item.cantidad}</span>${item.nombre}</span><span>$${(item.precio*item.cantidad).toFixed(2)}</span></div>`;
-    if(item.extras&&item.extras.length) html+=`<div class="order-summary-product extra"><span class="extra"><i class="fas fa-plus-circle"></i> ${item.extras.join(", ")}</span></div>`;
+    html+=`<div class="order-summary-product"><span><span class="qty">x${esc(item.cantidad)}</span>${esc(item.nombre)}</span><span>$${(item.precio*item.cantidad).toFixed(2)}</span></div>`;
+    if(item.extras&&item.extras.length) html+=`<div class="order-summary-product extra"><span class="extra"><i class="fas fa-plus-circle"></i> ${item.extras.map(esc).join(", ")}</span></div>`;
   });
   html+=`</div><div class="order-summary-total"><span>TOTAL</span><span>$${(p.total||0).toFixed(2)} MXN</span></div>`;
-  if(p.gpsLat&&p.gpsLng) html+=`<div class="order-summary-row" style="margin-top:10px;"><span class="label">Ubicación</span><span class="value"><a href="https://maps.google.com/?q=${p.gpsLat},${p.gpsLng}" target="_blank" style="color:var(--primary);text-decoration:underline;">Ver en mapa</a></span></div>`;
-  if(p.comentarios) html+=`<div class="order-summary-row"><span class="label">Observaciones</span><span class="value">${p.comentarios}</span></div>`;
+  if(p.gpsLat&&p.gpsLng) html+=`<div class="order-summary-row" style="margin-top:10px;"><span class="label">Ubicación</span><span class="value"><a href="https://maps.google.com/?q=${encodeURIComponent(p.gpsLat)},${encodeURIComponent(p.gpsLng)}" target="_blank" style="color:var(--primary);text-decoration:underline;">Ver en mapa</a></span></div>`;
+  if(p.comentarios) html+=`<div class="order-summary-row"><span class="label">Observaciones</span><span class="value">${esc(p.comentarios)}</span></div>`;
   html+=`<div class="order-summary-row"><span class="label">Fecha</span><span class="value">${f.toLocaleDateString()} ${f.toLocaleTimeString()}</span></div>`;
   content.innerHTML=html;
   modal.classList.add("show");
@@ -203,8 +203,8 @@ function renderClientes(){
       <div class="cliente-card">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <strong style="font-size:16px;">${c.nombre}</strong>
-            <div style="color:var(--primary);font-size:13px;">${c.telefono}</div>
+            <strong style="font-size:16px;">${esc(c.nombre)}</strong>
+            <div style="color:var(--primary);font-size:13px;">${esc(c.telefono)}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-weight:700;color:var(--primary);">$${c.total.toFixed(0)}</div>
@@ -212,7 +212,7 @@ function renderClientes(){
           </div>
         </div>
         <div style="margin-top:8px;font-size:12px;color:#666;">
-          Marca principal: ${topMarca?topMarca[0]:"—"} · Último: ${c.ultimoPedido?new Date(c.ultimoPedido).toLocaleDateString():"—"}
+          Marca principal: ${esc(topMarca?topMarca[0]:"—")} · Último: ${c.ultimoPedido?new Date(c.ultimoPedido).toLocaleDateString():"—"}
         </div>
       </div>`;
   });
@@ -733,11 +733,11 @@ function renderLogs(){
         </div>
         <div style="flex:1;min-width:0;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <strong style="font-size:13px;color:#e0e0e0;">${l.accion||"Sin acción"}</strong>
+            <strong style="font-size:13px;color:#e0e0e0;">${esc(l.accion||"Sin acción")}</strong>
             <span style="font-size:11px;color:#666;white-space:nowrap;">${f.toLocaleDateString()} ${f.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
           </div>
-          <div style="font-size:12px;color:#888;margin-top:3px;">${l.detalle||""}</div>
-          <div style="margin-top:5px;"><span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;background:${color}22;color:${color};">${l.tipo||"sistema"}</span></div>
+          <div style="font-size:12px;color:#888;margin-top:3px;">${esc(l.detalle||"")}</div>
+          <div style="margin-top:5px;"><span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;background:${color}22;color:${color};">${esc(l.tipo||"sistema")}</span></div>
         </div>
       </div>`;
   });

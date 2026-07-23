@@ -88,9 +88,9 @@ function ultimosPedidos(pedidos){
     const estado=p.estado||"Pendiente";
     const cls="status-"+(estado.toLowerCase().replace(" ",""));
     lista.innerHTML+=`<div class="order" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid rgba(255,255,255,.06);">
-      ${logo?`<img src="${logo}" style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:#1a1a1a;padding:4px;">`:`<div style="width:36px;height:36px;background:#1a1a1a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">🍔</div>`}
-      <div style="flex:1;"><strong style="font-size:13px;">${p.cliente||"Cliente"}</strong><br><small style="color:#888;">${p.marca?(p.marca.charAt(0).toUpperCase()+p.marca.slice(1)):"General"}</small></div>
-      <div style="text-align:right;"><div style="font-weight:700;color:var(--primary);">$${(p.total||0).toFixed(0)}</div><span class="status-badge ${cls}" style="font-size:11px;">${estado}</span></div>
+      ${logo?`<img src="${esc(logo)}" style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:#1a1a1a;padding:4px;">`:`<div style="width:36px;height:36px;background:#1a1a1a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">🍔</div>`}
+      <div style="flex:1;"><strong style="font-size:13px;">${esc(p.cliente||"Cliente")}</strong><br><small style="color:#888;">${esc(p.marca?(p.marca.charAt(0).toUpperCase()+p.marca.slice(1)):"General")}</small></div>
+      <div style="text-align:right;"><div style="font-weight:700;color:var(--primary);">$${(p.total||0).toFixed(0)}</div><span class="status-badge ${cls}" style="font-size:11px;">${esc(estado)}</span></div>
     </div>`;
   });
 }
@@ -102,7 +102,7 @@ function actividadReciente(pedidos){
   const recent=pedidos.slice(-6).reverse();
   if(!recent.length){act.innerHTML='<li><i class="fas fa-circle"></i><div><strong>Sistema iniciado</strong><br><small>Ahora</small></div></li>';return;}
   recent.forEach(p=>{
-    act.innerHTML+=`<li><i class="fas fa-circle"></i><div><strong>Pedido de ${p.cliente||"Cliente"}</strong><br><small>${p.marca?(p.marca.charAt(0).toUpperCase()+p.marca.slice(1)):"General"} · $${(p.total||0).toFixed(0)} · ${p.fecha?new Date(p.fecha).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):""}</small></div></li>`;
+    act.innerHTML+=`<li><i class="fas fa-circle"></i><div><strong>Pedido de ${esc(p.cliente||"Cliente")}</strong><br><small>${esc(p.marca?(p.marca.charAt(0).toUpperCase()+p.marca.slice(1)):"General")} · $${(p.total||0).toFixed(0)} · ${p.fecha?new Date(p.fecha).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):""}</small></div></li>`;
   });
 }
 

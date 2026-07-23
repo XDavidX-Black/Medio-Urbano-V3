@@ -211,10 +211,10 @@ function renderAdminPromosTable(){
   promosAdmin.forEach(p=>{
     tbody.innerHTML+=`
       <tr>
-        <td>${p.imagen?`<img src="${p.imagen}" style="width:70px;height:50px;object-fit:cover;border-radius:8px;">`:'<span style="color:#666;">Sin</span>'}</td>
-        <td>${p.titulo}</td>
-        <td>${p.marca||"-"}</td>
-        <td>${p.precio||"-"}</td>
+        <td>${p.imagen?`<img src="${esc(p.imagen)}" style="width:70px;height:50px;object-fit:cover;border-radius:8px;">`:'<span style="color:#666;">Sin</span>'}</td>
+        <td>${esc(p.titulo)}</td>
+        <td>${esc(p.marca||"-")}</td>
+        <td>${esc(p.precio||"-")}</td>
         <td style="font-size:12px;">${p.clicks||0}</td>
         <td style="font-size:12px;">${p.pedidosGenerados||0}</td>
         <td><span style="color:${p.activo!==false?'var(--success)':'var(--danger)'};font-weight:700;">${p.activo!==false?'Activo':'Inactivo'}</span></td>

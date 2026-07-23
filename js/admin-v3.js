@@ -139,7 +139,7 @@ function renderExtras(){
   el.innerHTML="";
   currentExtras.forEach((ex,i)=>{
     el.innerHTML+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:#ccc;">
-      <span style="flex:1;">${ex.nombre} <span style="color:var(--primary);">+$${ex.precio}</span></span>
+      <span style="flex:1;">${esc(ex.nombre)} <span style="color:var(--primary);">+$${ex.precio}</span></span>
       <button onclick="removeExtra(${i})" style="padding:4px 10px;font-size:11px;background:#c62828;color:white;">X</button>
     </div>`;
   });
@@ -272,8 +272,8 @@ function mostrarProductos(){
     tabla.innerHTML+=`
       <tr>
         <td><img src="${producto.imagen||''}" width="50" style="border-radius:8px;${producto.imagen?'':'display:none;'}"></td>
-        <td>${producto.nombre}</td>
-        <td>${catNames[producto.categoria]||producto.categoria}</td>
+        <td>${esc(producto.nombre)}</td>
+        <td>${esc(catNames[producto.categoria]||producto.categoria)}</td>
         <td>$${producto.precio}</td>
         <td><span style="color:${disponible?'var(--success)':'var(--danger)'};font-weight:700;">${disponible?'Activo':'Inactivo'}</span></td>
         <td>${producto.destacado?'<i class="fas fa-star" style="color:var(--primary);"></i>':'<span style="color:#444;">—</span>'}</td>
