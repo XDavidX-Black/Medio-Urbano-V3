@@ -1,0 +1,8 @@
+import {modules} from "./admin-modules.js";
+const $=id=>document.getElementById(id),nav=$("moduleLinks"),toggle=$("moduleToggle"),sidebar=$("moduleNav");
+let lastGroup="",active=null;
+for(const m of modules){if(m.group!==lastGroup){const h=document.createElement("div");h.className="nav-group";h.textContent=m.group;nav.append(h);lastGroup=m.group}const a=document.createElement("a"),icon=document.createElement("span");a.href="#"+m.id;a.dataset.module=m.id;icon.className="module-icon";icon.setAttribute("aria-hidden","true");icon.textContent=m.icon;a.append(icon,document.createTextNode(m.label));nav.append(a)}
+function close(){sidebar.classList.remove("mobile-open");toggle.setAttribute("aria-expanded","false")}
+function route(){const m=modules.find(x=>"#"+x.id===location.hash)||modules[0];for(const x of modules){const section=$(x.id);if(section)section.hidden=x.id!==m.id}for(const a of nav.querySelectorAll("a")){if(a.dataset.module===m.id)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")} $("moduleTitle").textContent=m.title;$("moduleGroup").textContent=m.group;$("moduleDescription").textContent=m.description;close();if(active&&active!==m.id){window.scrollTo(0,0);$("moduleTitle").setAttribute("tabindex","-1");$("moduleTitle").focus({preventScroll:true})}active=m.id}
+toggle.onclick=()=>{const open=sidebar.classList.toggle("mobile-open");toggle.setAttribute("aria-expanded",String(open))};
+window.addEventListener("hashchange",route);window.addEventListener("mu-admin-ready",()=>{toggle.hidden=false;route()});window.addEventListener("mu-admin-stop",()=>{toggle.hidden=true;close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sidebar.classList.contains("mobile-open")){close();toggle.focus()}});route();

@@ -23,3 +23,10 @@ Reportes por intervalo hasta 5000 pedidos, exportación CSV sin contacto, ventas
 - Para asignar rol al administrador existente, con ADC y correo verificado: node grant-admin.js --project=medio-urbano --email=CORREO (plan); agregar --apply tras verificar UID. Nunca enviar credenciales en chat.
 - Configura un target Hosting V4 distinto del sitio original; para local usar firebase.local.json (sin target). No habilitar liveEnabled hasta validar permisos y App Check.
 - Pagos por transferencia/efectivo se conservan; cobro en línea requiere proveedor, cuenta comercial y decisión explícita. No se ha activado ningún gasto ni desplegado.
+
+## UI ampliable
+- `admin-modules.js`: registro de módulos del panel (id, grupo, título, descripción e icono). Añade una sección `module-view` con ese ID y un script independiente. El shell gestiona rutas hash y navegación responsive. Los permisos reales siguen en Firebase.
+- `admin-shell.css` y `store-layout.css` separan estilos de administración y tienda, con tokens comunes en `style.css`.
+- Dashboard: rangos rápidos, gráfica diaria y tabla de datos, distribución por estado, ranking y accesos operativos. Conserva límites y criterio de ventas del informe anterior.
+- Tienda: destacados, filtros y orden de productos sin modificar el esquema Firestore. Futuras funciones (inventario, clientes, sucursales, roles, pagos) requieren módulos y reglas propias; no están activadas.
+- Actualizar localmente con `git pull --ff-only origin redesign-v4` y Ctrl+F5. No requiere desplegar Firebase. Revisar en emuladores escritorio/móvil y pedidos de prueba.
