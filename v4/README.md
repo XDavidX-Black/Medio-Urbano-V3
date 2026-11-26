@@ -40,3 +40,11 @@ Abrir http://localhost:5000 y http://localhost:5000/admin.html. El usuario de pr
 
 ## Pendientes
 Pruebas de integración reales y de reglas; App Check, configuración real, tarifas y catálogo, revisión legal, accesibilidad completa, recuperación de sesión entre dispositivos, validación geográfica y automatización de horarios, carga de imágenes, promociones con descuentos y pagos en línea si el negocio los requiere. Las estadísticas actuales se limitan a 100 pedidos recientes.
+
+## Ampliación de operación y dashboard
+- Dashboard por intervalo, máximo 5,000 pedidos, exportación CSV sin datos de contacto, ventas entregadas por fecha de creación, ticket promedio, estados, unidades por marca y productos más vendidos. No representa pagos conciliados ni utilidad.
+- Horario automático en America/Cancun, inclusive turnos nocturnos; cierre manual prevalece.
+- Descuento global porcentual de 1–50%, fechas opcionales, calculado por servidor y sin descuento sobre envío. No acumula promociones.
+- Cobertura radial opcional por zona; el servidor comprueba distancia en línea recta de coordenadas declaradas, no rutas ni autenticidad del GPS.
+- Carga de fotos de hasta 5 MB en Storage con rol administrativo. No elimina automáticamente imágenes huérfanas.
+- Las configuraciones reales, pruebas integradas, aviso legal, recuperación de cuenta entre dispositivos y eventual pago en línea siguen pendientes. No se ha desplegado a Firebase.
