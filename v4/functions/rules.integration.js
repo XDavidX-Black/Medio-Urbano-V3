@@ -8,5 +8,6 @@ test("privacy and administrative authorization",async()=>{
  await assertSucceeds(getDoc(doc(buyer,"v4_pedidos",id)));await assertFails(getDoc(doc(other,"v4_pedidos",id)));await assertFails(getDoc(doc(anon,"v4_pedidos",id)));await assertFails(getDocs(collection(buyer,"v4_pedidos")));await assertSucceeds(getDocs(collection(admin,"v4_pedidos")));await assertFails(setDoc(doc(admin,"v4_pedidos",id),{estado:"Entregado"}));
  const p={name:"Prueba",brand:"cocina",description:"",priceCents:100,active:true,image:"",extras:[],featured:false};
  await assertFails(setDoc(doc(buyer,"v4_productos","fixture-product"),p));await assertSucceeds(setDoc(doc(admin,"v4_productos","fixture-product"),p));await assertSucceeds(getDoc(doc(anon,"v4_productos","fixture-product")));
+ const brand={name:"Urban Tacos",active:true,order:50,logo:""};await assertFails(setDoc(doc(buyer,"v4_marcas","brand-tacos"),brand));await assertFails(setDoc(doc(admin,"v4_productos","fixture-custom"),{...p,brand:"brand-tacos"}));await assertSucceeds(setDoc(doc(admin,"v4_marcas","brand-tacos"),brand));await assertSucceeds(getDoc(doc(anon,"v4_marcas","brand-tacos")));await assertSucceeds(setDoc(doc(admin,"v4_productos","fixture-custom"),{...p,brand:"brand-tacos"}));await assertFails(setDoc(doc(admin,"v4_marcas","marca"),brand));
  }finally{await env.cleanup()}
 });

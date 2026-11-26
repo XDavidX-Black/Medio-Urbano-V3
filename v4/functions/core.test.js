@@ -11,3 +11,7 @@ test("rechaza extras duplicados",()=>assert.throws(()=>normalize({...sample,item
 test("rechaza extras desconocidos",()=>assert.throws(()=>quote(normalize({...sample,items:[{id:"burger",qty:2,extras:["x"]}]}),catalog,config)));
 test("transiciones permitidas y finales",()=>{assert.ok(transition("Pendiente","Preparando"));assert.ok(!transition("Entregado","Pendiente"))});
 test("rechaza teléfono inválido",()=>assert.throws(()=>normalize({...sample,contact:{...sample.contact,phone:"abc"}})));
+
+test("marca nueva registrada permite pedidos",()=>assert.equal(quote(normalize(sample),{burger:{...catalog.burger,brand:"brand-tacos"}},config,new Date(),{"brand-tacos":{name:"Urban Tacos",active:true}}).items[0].brandName,"Urban Tacos"));
+test("marca nueva no registrada rechazada",()=>assert.throws(()=>quote(normalize(sample),{burger:{...catalog.burger,brand:"brand-tacos"}},config)));
+test("marca original desactivada rechazada",()=>assert.throws(()=>quote(normalize(sample),catalog,config,new Date(),{burgers:{name:"Burgers",active:false}})));

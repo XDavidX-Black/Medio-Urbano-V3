@@ -23,7 +23,8 @@ exports.v4CreateOrder=onCall(options,async request=>{
   const [cfg,rate,...productDocs]=docs;
   const now=Date.now(), previous=rate.data()?.lastMs||0;if(now-previous<15000)throw new HttpsError("resource-exhausted","Espera unos segundos para realizar otro pedido.");
   const catalog=Object.fromEntries(productDocs.filter(d=>d.exists).map(d=>[d.id,d.data()]));
-  let priced;try{priced=quote(req,catalog,cfg.data())}catch(e){invalid(e)}
+  const brandIds=[...new Set(Object.values(catalog).map(p=>p.brand))];if(brandIds.some(id=>typeof id!=="string"||!/^[a-z0-9][a-z0-9-]{0,29}$/.test(id)||id==="marca"))throw new HttpsError("failed-precondition","Marca inválida");const brandDocs=brandIds.length?await tx.getAll(...brandIds.map(id=>db.collection("v4_marcas").doc(id))):[];const registry=Object.fromEntries(brandDocs.filter(d=>d.exists).map(d=>[d.id,d.data()]));
+  let priced;try{priced=quote(req,catalog,cfg.data(),new Date(now),registry)}catch(e){invalid(e)}
   tx.create(ref,{...priced,ownerUid:uid,fingerprint,customer:req.customer,payment:req.payment,estado:"Pendiente",createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()});
   tx.set(gate,{lastMs:now});return {id,totalCents:priced.totalCents,estado:"Pendiente"};
  });

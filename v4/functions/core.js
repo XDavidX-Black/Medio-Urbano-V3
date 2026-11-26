@@ -22,11 +22,13 @@ function normalize(data){
  return {token,items,customer,payment,zone:clean(data.zone,60),expectedTotal:cents(data.expectedTotal)};
 }
 
-function quote(req,catalog,config,now=new Date()){
+const originalBrands=new Set(["cocina","salad","burgers","pasta"]);
+function brandAvailable(id,registry){return typeof id==="string"&&/^[a-z0-9][a-z0-9-]{0,29}$/.test(id)&&id!=="marca"&&(Object.hasOwn(registry,id)?registry[id]?.active===true:originalBrands.has(id))}
+function quote(req,catalog,config,now=new Date(),registry={}){
  if(!openNow(config,now))fail("Tienda cerrada");
  const zone=config.zones?.find(z=>z.id===req.zone&&z.active===true);if(!zone)fail("Zona de envío no disponible");if(!inZone(zone,req.customer.location))fail("La ubicación está fuera de cobertura o falta indicar la ubicación de entrega");
  let subtotal=0;
- const items=req.items.map(line=>{const p=catalog[line.id];if(!p||p.active!==true)fail("Producto no disponible");const base=cents(p.priceCents);if(base===0)fail("Precio no configurado");const options=line.extras.map(id=>{const e=p.extras?.find(x=>x.id===id&&x.active===true);if(!e)fail("Extra no disponible");return {id,name:clean(e.name,100),priceCents:cents(e.priceCents)}});const unit=base+options.reduce((a,x)=>a+x.priceCents,0);const total=unit*line.qty;subtotal+=total;return {id:line.id,name:clean(p.name,100),brand:clean(p.brand,30),qty:line.qty,extras:options,unitCents:unit,totalCents:total}});
+ const items=req.items.map(line=>{const p=catalog[line.id];if(!p||p.active!==true||!brandAvailable(p.brand,registry))fail("Producto o marca no disponible");const base=cents(p.priceCents);if(base===0)fail("Precio no configurado");const options=line.extras.map(id=>{const e=p.extras?.find(x=>x.id===id&&x.active===true);if(!e)fail("Extra no disponible");return {id,name:clean(e.name,100),priceCents:cents(e.priceCents)}});const unit=base+options.reduce((a,x)=>a+x.priceCents,0);const total=unit*line.qty;subtotal+=total;return {id:line.id,name:clean(p.name,100),brand:clean(p.brand,30),brandName:clean(registry[p.brand]?.name||p.brand,80),qty:line.qty,extras:options,unitCents:unit,totalCents:total}});
  if(subtotal<cents(config.minCents))fail("Compra mínima no alcanzada");
  const discount=discountFor(config,subtotal,now),delivery=cents(zone.feeCents),total=subtotal-discount+delivery;
  if(total>10000000)fail("Pedido demasiado grande");
