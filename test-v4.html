@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+
+
+
   <link rel="stylesheet" href="css/promos-carousel.css">
   <meta name="description" content="Medio Urbano | Cocina, Salad, Burgers y Pasta.">
   <meta name="keywords" content="comida,cancun,hamburguesas,ensaladas,pastas,comida casera">
@@ -1380,7 +1380,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
         <a href="#marcas">Marcas</a>
         <a href="#promociones">Promociones</a>
         <a href="#nosotros">Nosotros</a>
-        <a href="#contacto">Contacto</a>
+        <a href="#contacto">Contacto</a><a href="admin-v4-demo.html">Panel demo</a>
       </nav>
       <div class="header-buttons">
         <button type="button" class="btn-cart">
@@ -1393,7 +1393,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     </div>
   </header>
 
-  <div class="v4-preview-label">V4 · URBAN PREMIUM · VISTA DE PRUEBAS — NO ENVÍA PEDIDOS</div>
+  <div class="v4-preview-label">V4 · URBAN PREMIUM · DEMOSTRACIÓN — PRODUCTOS Y PRECIOS DE EJEMPLO</div>
   <!-- HERO -->
   <section class="hero" id="hero">
     <div class="hero-content">
@@ -1421,7 +1421,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       <div class="search-box">
         <div class="search-input-wrap">
           <i class="fas fa-search"></i>
-          <input type="text" id="buscador" placeholder="Buscar productos...">
+          <input type="search" id="buscador" aria-label="Buscar productos" placeholder="Busca un platillo, ingrediente o marca...">
         </div>
         <div id="autocomplete"></div>
       </div>
@@ -1447,7 +1447,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
         </div>
       </div>
       <!-- SEARCH RESULTS -->
-      <div class="search-results" id="resultadosBusqueda"></div>
+      <div class="section-title" style="margin-top:32px"><h2>Explora el menú</h2></div><div class="search-results" id="resultadosBusqueda"></div>
     </div>
   </section>
   <section class="promotions" id="promociones">
@@ -1586,7 +1586,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
         <div class="order-modal-body">
           <div class="order-section">
             <div class="order-section-title"><i class="fas fa-user"></i> TUS DATOS</div>
-            <input type="text" id="orderCliente" placeholder="Nombre completo *" required>
+            <p style="font-size:12px;color:#ffd028;margin-bottom:10px">Usa datos ficticios. Esta demo no transmite ni guarda tus datos de entrega.</p><input type="text" id="orderCliente" placeholder="Nombre completo *" required>
             <div class="field-error" id="errCliente"></div>
             <input type="tel" id="orderTelefono" placeholder="WhatsApp *" required>
             <div class="field-error" id="errTelefono"></div>
@@ -2144,6 +2144,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
         return;
       }
       const label="MEDIO URBANO "+brand.toUpperCase();
+      [logo1,logo2,logo3].filter(Boolean).forEach(el=>{el.src="img/logo-"+brand+".png";el.alt=label;el.style.display="block";});
       name1.textContent=label;
       name2.textContent=label;
       if(name3) name3.textContent=label;
@@ -2302,14 +2303,14 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     }
 
     function buildOrderSummary(){
-      const cliente=document.getElementById("orderCliente").value.trim();
-      const telefono=document.getElementById("orderTelefono").value.trim();
-      const direccion=document.getElementById("orderDireccion").value.trim();
-      const colonia=document.getElementById("orderColonia").value.trim();
-      const cp=document.getElementById("orderCp").value.trim();
-      const referencias=document.getElementById("orderReferencias").value.trim();
+      const cliente=window.V4Demo.esc(document.getElementById("orderCliente").value.trim());
+      const telefono=window.V4Demo.esc(document.getElementById("orderTelefono").value.trim());
+      const direccion=window.V4Demo.esc(document.getElementById("orderDireccion").value.trim());
+      const colonia=window.V4Demo.esc(document.getElementById("orderColonia").value.trim());
+      const cp=window.V4Demo.esc(document.getElementById("orderCp").value.trim());
+      const referencias=window.V4Demo.esc(document.getElementById("orderReferencias").value.trim());
       const pago=document.querySelector('input[name="orderPago"]:checked').value;
-      const comentarios=document.getElementById("orderComentarios").value.trim();
+      const comentarios=window.V4Demo.esc(document.getElementById("orderComentarios").value.trim());
 
       let html="";
 
@@ -2576,6 +2577,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     }
 
     function resumeActiveOrder(){
+      if(window.V4Demo){window.V4Demo.resume();return;}
       const orderId=localStorage.getItem("muActiveOrderV4Preview");
       if(!orderId){document.getElementById("orderDialogModal").classList.remove("active");return;}
       document.getElementById("orderDialogModal").classList.remove("active");
@@ -2632,7 +2634,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     });
 
     document.getElementById("orderBtnSend").addEventListener("click",async()=>{
-      try{alert("Simulación completada. No se ha enviado ningún pedido ni se ha modificado la base de datos.");closeOrderModal();renderCarrito();}catch(e){console.error(e);}
+      try{window.V4Demo.submit();}catch(e){alert("No se pudo simular el pedido: "+e.message);}
     });
 
     //====================================================
@@ -2680,10 +2682,10 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
   <script src="js/slider.js?v=2"></script>
   <!-- V4: efectos de partículas y cursor desactivados -->
   <script src="js/notifications.js"></script>
-  <script src="js/search.js"></script>
+  <script src="js/v4-demo.js"></script>
   <script src="js/lazyload.js"></script>
-  <script src="js/pedidos.js"></script>
-  <script src="js/firebase-config.js"></script>
+  <!-- Local simulation; legacy order storage disabled. -->
+
   <script>
 /*====================================================
 promos-carousel.js - MEDIO URBANO V3
@@ -2868,7 +2870,7 @@ carrusel dentro de la sección existente #promociones
 })();
 
 </script>
-  <script src="js/brand-identity.js"></script>
+  <!-- Demo uses original static logos. -->
   <script>
     function loadBrandLogosFromFirestore(){
       if(typeof firebase==="undefined"||!firebase.firestore) return;

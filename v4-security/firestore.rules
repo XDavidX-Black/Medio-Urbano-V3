@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() { return request.auth != null && request.auth.token.admin == true; }
+    match /productos/{id} { allow read: if true; allow write: if admin(); }
+    match /promociones/{id} { allow read: if true; allow write: if admin(); }
+    match /menus/{id} { allow read: if true; allow write: if admin(); }
+    match /config/{id} {
+      allow read: if admin() || id in ['logos','horarios','hero','social','publicCheckout'];
+      allow write: if admin();
+    }
+    match /pedidos/{id} {
+      allow get: if admin() || (request.auth != null && resource.data.ownerUid == request.auth.uid);
+      allow list: if admin();
+      allow create: if false; // callable function only
+      allow update: if admin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']) &&
+        request.resource.data.estado in ['Pendiente','Preparando','En reparto','Entregado','Cancelado'];
+      allow delete: if false;
+    }
+    match /logs/{id} { allow read, write: if admin(); }
+  }
+}
