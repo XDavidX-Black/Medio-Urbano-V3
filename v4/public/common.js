@@ -16,7 +16,8 @@ const money=c=>new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).
 const brands=["cocina","salad","burgers","pasta"];
 function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e}
 function button(label,action,cls="secondary"){const b=el("button",label,cls);b.type="button";b.addEventListener("click",action);return b}
-function imageFor(p){const fallback="img/logo-"+(brands.includes(p.brand)?p.brand:"marca")+".png";try{const u=new URL(p.image,location.href);if(u.protocol==="https:"||u.origin===location.origin)return u.href}catch{}return fallback}
+function safeImage(value,fallback=""){if(typeof value!=="string"||!value)return fallback;if(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(value)&&value.length<800000)return value;try{const u=new URL(value,location.href);if(u.protocol==="https:"||u.origin===location.origin)return u.href}catch{}return fallback}
+function imageFor(p){const fallback="img/logo-"+(brands.includes(p.brand)?p.brand:"marca")+".png";return safeImage(p.image,fallback)}
 async function customerAuth(){await auth.authStateReady();return auth.currentUser|| (await signInAnonymously(auth)).user}
 function err(e){return e?.message||"Ocurrió un error."}
-export {auth,db,functions,storage,ref,uploadBytes,getDownloadURL,$,money,brands,el,button,imageFor,customerAuth,err,collection,doc,onSnapshot,setDoc,deleteDoc,query,orderBy,limit,getDocs,where,startAfter,Timestamp,httpsCallable,onAuthStateChanged,signInWithEmailAndPassword,signOut};
+export {auth,db,functions,storage,ref,uploadBytes,getDownloadURL,$,money,brands,el,button,imageFor,safeImage,customerAuth,err,collection,doc,onSnapshot,setDoc,deleteDoc,query,orderBy,limit,getDocs,where,startAfter,Timestamp,httpsCallable,onAuthStateChanged,signInWithEmailAndPassword,signOut};

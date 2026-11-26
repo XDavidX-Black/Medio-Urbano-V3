@@ -1,7 +1,7 @@
 import {auth,db,$,money,el,collection,query,where,orderBy,limit,getDocs,startAfter,Timestamp} from "./common.js";
 import {timeParts} from "./policy.js";
 function aggregate(rows){
- const delivered=rows.filter(o=>o.estado==="Entregado"),sum=delivered.reduce((a,o)=>a+o.totalCents,0),daily={},states={},brands={},products={};
+ const delivered=rows.filter(o=>o.estado==="Entregado"),sum=delivered.reduce((a,o)=>a+o.totalCents,0),daily=Object.create(null),states=Object.create(null),brands=Object.create(null),products=Object.create(null);
  for(const o of rows)states[o.estado]=(states[o.estado]||0)+1;
  for(const o of delivered){daily[o.day]=(daily[o.day]||0)+o.totalCents;for(const i of o.items||[]){brands[i.brand]=(brands[i.brand]||0)+i.qty;products[i.name]=(products[i.name]||0)+i.qty}}
  return {count:rows.length,delivered:delivered.length,revenue:sum,average:delivered.length?Math.round(sum/delivered.length):0,pending:rows.filter(o=>["Pendiente","Preparando","En reparto"].includes(o.estado)).length,daily,states,brands,products};

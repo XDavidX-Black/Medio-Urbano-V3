@@ -3,7 +3,7 @@
 Se reutiliza el proyecto existente `medio-urbano` y su configuración Web SDK. La V4 se mantiene deshabilitada fuera del emulador hasta terminar el despliegue. No se ha conectado a datos reales ni se ha ejecutado la migración.
 
 ## Emulador (sin tocar Firebase real)
-Desde v4/functions: npm install, npm test. Desde v4: firebase emulators:start --project demo-medio-urbano-v4. En otra terminal, desde v4/functions: node seed-emulator.js. Abrir http://localhost:5000 y /admin.html. Cuenta de prueba exclusiva del emulador: admin@example.test / DemoLocal-2026!. Con el emulador en ejecución: npm run test:rules.
+Desde v4/functions: npm install, npm test. Desde v4: firebase emulators:start --config firebase.local.json --project demo-medio-urbano-v4. En otra terminal, desde v4/functions: node seed-emulator.js. Abrir http://localhost:5000 y /admin.html. Cuenta de prueba exclusiva del emulador: admin@example.test / DemoLocal-2026!. Con el emulador en ejecución: npm run test:rules.
 
 ## Migración del mismo proyecto
 - V3 conserva los documentos originales; V4 usa v4_productos, v4_pedidos, v4_config, v4_orderRate, v4_promociones y v4_logos.
@@ -17,3 +17,9 @@ Desde v4/functions: npm install, npm test. Desde v4: firebase emulators:start --
 
 ## Dashboard y operación
 Reportes por intervalo hasta 5000 pedidos, exportación CSV sin contacto, ventas entregadas agrupadas por fecha de creación, ticket promedio, unidades por marca y productos más vendidos. No son cobros conciliados. Descuentos globales 1–50%, GPS por radio (no verifica autenticidad de coordenadas), horario Cancún, carga de fotos hasta 5 MB, PWA. Pendientes: validación integral y aviso de privacidad aprobado, pagos en línea si se desean, recuperación de sesión entre dispositivos.
+
+## Cierre técnico
+- El catálogo visual consume las fotos migradas, logos dinámicos, portada, redes y anuncios. El panel V4 permite editar esos elementos independientemente de V3.
+- Para asignar rol al administrador existente, con ADC y correo verificado: node grant-admin.js --project=medio-urbano --email=CORREO (plan); agregar --apply tras verificar UID. Nunca enviar credenciales en chat.
+- Configura un target Hosting V4 distinto del sitio original; para local usar firebase.local.json (sin target). No habilitar liveEnabled hasta validar permisos y App Check.
+- Pagos por transferencia/efectivo se conservan; cobro en línea requiere proveedor, cuenta comercial y decisión explícita. No se ha activado ningún gasto ni desplegado.
