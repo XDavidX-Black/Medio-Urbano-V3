@@ -1,53 +1,19 @@
-# Medio Urbano V4 — entorno separado
+# Medio Urbano V4 · reutilización segura de Firebase
 
-## Desarrollo local
-Requiere Node.js 22, Java compatible con el emulador de Firestore, Firebase CLI y conexión para descargar SDK y dependencias. Desde la raíz del repositorio:
+Se reutiliza el proyecto existente `medio-urbano` y su configuración Web SDK. La V4 se mantiene deshabilitada fuera del emulador hasta terminar el despliegue. No se ha conectado a datos reales ni se ha ejecutado la migración.
 
-    git switch redesign-v4
-    cd v4
-    cd functions
-    npm install
-    npm test
-    cd ..
-    firebase emulators:start --project demo-medio-urbano-v4
+## Emulador (sin tocar Firebase real)
+Desde v4/functions: npm install, npm test. Desde v4: firebase emulators:start --project demo-medio-urbano-v4. En otra terminal, desde v4/functions: node seed-emulator.js. Abrir http://localhost:5000 y /admin.html. Cuenta de prueba exclusiva del emulador: admin@example.test / DemoLocal-2026!. Con el emulador en ejecución: npm run test:rules.
 
-En otra terminal, dentro de v4/functions:
+## Migración del mismo proyecto
+- V3 conserva los documentos originales; V4 usa v4_productos, v4_pedidos, v4_config, v4_orderRate, v4_promociones y v4_logos.
+- Se reutilizan Authentication, Storage, SDK y logotipos originales. El script convierte precios a centavos, extras, catálogo, zonas, horarios y datos de marca; conserva promos como anuncios, no descuentos automáticos. No migra pedidos antiguos por falta de propietario autenticado.
+- Desde v4/functions con credenciales ADC autorizadas: node migrate-v3.js --project=medio-urbano (solo plan, no escrituras). Revisar advertencias. Con aprobación y respaldo: node migrate-v3.js --project=medio-urbano --apply. No sobreescribe documentos existentes de V4 ni modifica V3. La V4 se crea cerrada. Para ensayo, usar --emulator.
+- Los horarios antiguos por marca se preservan en el archivo administrativo; la apertura global usa su unión y requiere revisar disponibilidad de cada marca. Zonas antiguas conservan nombres y tarifas; mínimos por zona y tiempos se archivan para revisión. Imágenes base64 de productos se guardan por separado y se muestran si están disponibles. Configuración de contacto y textos conservados selectivamente.
+- Las reglas son compartidas en el proyecto. Antes de habilitar auth anónima deben instalarse reglas seguras. Las propuestas cierran la lectura/escritura pública de pedidos V3 y restringen escrituras antiguas a administradores; el checkout y seguimiento público V3 dejarán de funcionar bajo estas reglas. Código y datos V3 quedan intactos, pero no se garantiza compatibilidad operativa simultánea. Revisar las rutas de Storage antiguas antes de publicar.
+- Usar un sitio Hosting distinto (target v4), no el sitio por defecto. Functions se llaman v4CreateOrder y v4UpdateOrderStatus, codebase medio-urbano-v4. No desplegar funciones ajenas ni aceptar eliminaciones.
+- Configurar App Check, auth anónima y email/password y asignar custom claim admin:true únicamente a las cuentas administrativas verificadas. No usar claves privadas ni compartir contraseñas. Functions/Storage pueden requerir plan de facturación.
+- Antes de activar liveEnabled, probar reglas en emulador, migración, integración de pedidos y permisos, UI móvil/PC, configurar sitio Hosting separado, confirmar catálogo/zonas/horarios y aviso de privacidad. No desplegar sin respaldo y aprobación de cambios de reglas. No se ha ejecutado ningún despliegue.
 
-    node seed-emulator.js
-
-Abrir http://localhost:5000 y http://localhost:5000/admin.html. El usuario de prueba es admin@example.test y la clave DemoLocal-2026! exclusivamente en emulador. No usar esa contraseña en servicios reales.
-
-## Arquitectura
-- Hosting aislado en v4/public, sin publicar los HTML/JS de V3.
-- Autenticación anónima para compradores; admin requiere custom claim admin:true asignado mediante Admin SDK desde entorno confiable.
-- createOrder valida catálogo, extras, precios, mínimo, zona y estado de apertura. Transacción, token de idempotencia y límite por UID.
-- updateOrderStatus verifica rol y transiciones de estado.
-- Firestore impide escrituras directas de pedidos y lectura por terceros.
-- El panel edita catálogo, extras, configuración de entrega y estados; deshacer/rehacer sólo en sesión actual, no es un sistema de auditoría persistente.
-- Seguimiento ligado a UID y navegador; no comparte PII por enlace público.
-- El cliente usa el WhatsApp configurado para consultas; no envía mensajes de forma automática.
-- Las imágenes originales se copiaron como blobs Git; no se alteraron.
-- PWA con caché acotada a activos públicos.
-
-## Antes de cualquier publicación
-1. Crear un proyecto Firebase de staging, diferente de V3. Habilitar Authentication anónima y email/password, Firestore, Functions, Hosting y App Check reCAPTCHA Enterprise; configurar dominios y presupuesto/alertas. Las Functions pueden requerir plan Blaze.
-2. Ajustar public/config.js al proyecto de staging y su clave pública App Check; no introducir cuentas de servicio o secretos en Git.
-3. Asignar el rol admin a una cuenta del propietario mediante Admin SDK seguro. No abrir el rol a usuarios autenticados ordinarios.
-4. Ejecutar pruebas de reglas con emuladores, prueba de flujo extremo a extremo y de dos usuarios, concurrencia, recarga, reintento de pedido y cambios de precios. Validar en móvil/PC. Instalar dependencias y generar lockfile antes de despliegue.
-5. Configurar catálogo, imágenes, extras, zonas, cobertura, horarios reales (actualmente apertura manual), costos, mínimos, impuestos y métodos de pago. No hay cobro en línea ni validación de zona geográfica: el cliente selecciona zona, el negocio confirma dirección. Promociones actuales son anuncios sin descuento automático.
-6. Completar aviso de privacidad y política de retención, acceso y supresión de datos. Mantener noindex hasta aprobar lanzamiento.
-7. Desplegar únicamente a proyecto staging explícito con firebase deploy --project ID_DE_STAGING desde v4. Nunca ejecutar contra V3. No se ha desplegado ni comprobado en navegador.
-
-## Pendientes
-Pruebas de integración reales y de reglas; App Check, configuración real, tarifas y catálogo, revisión legal, accesibilidad completa, recuperación de sesión entre dispositivos, validación geográfica y automatización de horarios, carga de imágenes, promociones con descuentos y pagos en línea si el negocio los requiere. Las estadísticas actuales se limitan a 100 pedidos recientes.
-
-## Ampliación de operación y dashboard
-- Dashboard por intervalo, máximo 5,000 pedidos, exportación CSV sin datos de contacto, ventas entregadas por fecha de creación, ticket promedio, estados, unidades por marca y productos más vendidos. No representa pagos conciliados ni utilidad.
-- Horario automático en America/Cancun, inclusive turnos nocturnos; cierre manual prevalece.
-- Descuento global porcentual de 1–50%, fechas opcionales, calculado por servidor y sin descuento sobre envío. No acumula promociones.
-- Cobertura radial opcional por zona; el servidor comprueba distancia en línea recta de coordenadas declaradas, no rutas ni autenticidad del GPS.
-- Carga de fotos de hasta 5 MB en Storage con rol administrativo. No elimina automáticamente imágenes huérfanas.
-- Las configuraciones reales, pruebas integradas, aviso legal, recuperación de cuenta entre dispositivos y eventual pago en línea siguen pendientes. No se ha desplegado a Firebase.
-
-### Pruebas de permisos
-Con el emulador activo, desde functions ejecuta `npm run test:rules`. Incluye acceso de propietario, denegación de terceros y anónimos, permisos de catálogo y prohibición de escrituras directas de pedidos. No ejecutada todavía.
+## Dashboard y operación
+Reportes por intervalo hasta 5000 pedidos, exportación CSV sin contacto, ventas entregadas agrupadas por fecha de creación, ticket promedio, unidades por marca y productos más vendidos. No son cobros conciliados. Descuentos globales 1–50%, GPS por radio (no verifica autenticidad de coordenadas), horario Cancún, carga de fotos hasta 5 MB, PWA. Pendientes: validación integral y aviso de privacidad aprobado, pagos en línea si se desean, recuperación de sesión entre dispositivos.

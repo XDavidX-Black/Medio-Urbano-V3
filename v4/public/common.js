@@ -6,7 +6,7 @@ import {getFirestore,connectFirestoreEmulator,collection,doc,onSnapshot,setDoc,d
 import {getStorage,connectStorageEmulator,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 import {getFunctions,connectFunctionsEmulator,httpsCallable} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import {initializeAppCheck,ReCaptchaEnterpriseProvider} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-if(!settings.emulator&&(!settings.appCheckSiteKey||settings.firebase.projectId.startsWith("demo-")))throw Error("Configura un Firebase de pruebas y App Check antes de publicar.");
+if(!settings.emulator&&(!settings.liveEnabled||!settings.appCheckSiteKey)){const n=document.getElementById("system")||document.getElementById("status");if(n)n.textContent="V4 aún no está habilitada: faltan reglas, migración y App Check.";throw Error("V4 live disabled.");}
 const app=initializeApp(settings.firebase);
 if(!settings.emulator)initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(settings.appCheckSiteKey),isTokenAutoRefreshEnabled:true});
 const auth=getAuth(app),db=getFirestore(app),functions=getFunctions(app,settings.region),storage=getStorage(app);

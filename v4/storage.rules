@@ -1,10 +1,20 @@
 rules_version = '2';
 service firebase.storage {
  match /b/{bucket}/o {
-  match /public/{path=**} {
+  function admin(){return request.auth != null && request.auth.token.admin==true;}
+  match /public/v4/{path=**} {
    allow read: if true;
-   allow create,update: if request.auth != null && request.auth.token.admin==true && request.resource.size<5*1024*1024 && request.resource.contentType.matches('image/(jpeg|png|webp)');
-   allow delete: if request.auth != null && request.auth.token.admin==true;
+   allow create,update: if admin() && request.resource.size<5*1024*1024 && request.resource.contentType.matches('image/(jpeg|png|webp)');
+   allow delete: if admin();
+  }
+  // Existing V3 public images remain readable; never allow arbitrary signed-in users to write.
+  match /{top}/{path=**} {
+   allow read: if top != "public" && top in ["images","img","productos","promociones","logos"];
+   allow write: if top != "public" && admin() && top in ["images","img","productos","promociones","logos"];
+  }
+  match /public/{first}/{path=**} {
+   allow read: if first != "v4";
+   allow write: if first != "v4" && admin();
   }
  }
 }

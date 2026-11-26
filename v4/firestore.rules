@@ -3,9 +3,21 @@ service cloud.firestore {
  match /databases/{database}/documents {
   function admin(){return request.auth != null && request.auth.token.admin == true;}
   function product(){let d=request.resource.data;return d.keys().hasOnly(['name','brand','description','priceCents','active','image','extras','featured']) && d.name is string && d.name.size()>0 && d.name.size()<=100 && d.brand in ['cocina','salad','burgers','pasta'] && d.description is string && d.description.size()<=300 && d.priceCents is int && d.priceCents>0 && d.priceCents<=10000000 && d.active is bool && d.image is string && d.image.size()<=1000 && d.extras is list && d.extras.size()<=10 && d.featured is bool;}
-  match /productos/{id}{allow read: if true;allow create,update: if admin() && product();allow delete: if admin();}
-  match /config/publicCheckout{allow read: if true;allow create,update: if admin() && request.resource.data.keys().hasOnly(['open','minCents','zones','whatsapp','announcement','autoHours','hours','promotion']) && request.resource.data.open is bool && request.resource.data.minCents is int && request.resource.data.minCents>=0 && request.resource.data.zones is list && request.resource.data.zones.size()<=40 && request.resource.data.whatsapp is string && request.resource.data.announcement is string && request.resource.data.announcement.size()<=160 && (!("autoHours" in request.resource.data) || request.resource.data.autoHours is bool) && (!("hours" in request.resource.data) || (request.resource.data.hours is list && request.resource.data.hours.size()<=28)) && (!("promotion" in request.resource.data) || request.resource.data.promotion is map);allow delete: if false;}
-  match /pedidos/{id}{allow get: if admin() || (request.auth != null && resource.data.ownerUid==request.auth.uid);allow list: if admin();allow write: if false;}
-  match /orderRate/{id}{allow read,write: if false;}
+  match /v4_productos/{id}{allow read: if true;allow create,update: if admin() && product();allow delete: if admin();}
+  match /v4_config/publicCheckout{allow read: if true;allow create,update: if admin() && request.resource.data.keys().hasOnly(['open','minCents','zones','whatsapp','announcement','autoHours','hours','promotion']) && request.resource.data.open is bool && request.resource.data.minCents is int && request.resource.data.minCents>=0 && request.resource.data.zones is list && request.resource.data.zones.size()<=40 && request.resource.data.whatsapp is string && request.resource.data.announcement is string && request.resource.data.announcement.size()<=160 && (!("autoHours" in request.resource.data) || request.resource.data.autoHours is bool) && (!("hours" in request.resource.data) || (request.resource.data.hours is list && request.resource.data.hours.size()<=28)) && (!("promotion" in request.resource.data) || request.resource.data.promotion is map);allow delete: if false;}
+  match /v4_pedidos/{id}{allow get: if admin() || (request.auth != null && resource.data.ownerUid==request.auth.uid);allow list: if admin();allow write: if false;}
+  match /v4_orderRate/{id}{allow read,write: if false;}
+  match /v4_config/brandAssets {allow read: if true;allow write: if admin();}
+  match /v4_config/legacyArchive {allow read,write: if admin();}
+  match /v4_logos/{id} {allow read: if true;allow write: if admin();}
+  match /v4_config/{id} {allow read: if id.matches('legacyImage_[A-Za-z0-9_-]+');allow write: if admin() && id.matches('legacyImage_[A-Za-z0-9_-]+');}
+  match /v4_promociones/{id} {allow read: if true;allow write: if admin();}
+  // Legacy V3: retain data and public catalog, close unsafe permissions before anonymous auth.
+  match /productos/{id} {allow read: if true;allow write: if admin();}
+  match /promociones/{id} {allow read: if true;allow write: if admin();}
+  match /menus/{id} {allow read: if true;allow write: if admin();}
+  match /config/{id} {allow read: if admin() || id in ["logos","horarios","hero","social","general","zonas","seo","pwa","brandIdentity"];allow write: if admin();}
+  match /pedidos/{id} {allow read,write: if admin();}
+  match /logs/{id} {allow read,write: if admin();}
  }
 }

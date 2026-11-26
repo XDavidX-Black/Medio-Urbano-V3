@@ -1,7 +1,8 @@
 {
   "functions": {
     "source": "functions",
-    "runtime": "nodejs22"
+    "runtime": "nodejs22",
+    "codebase": "medio-urbano-v4"
   },
   "firestore": {
     "rules": "firestore.rules"
@@ -43,7 +44,8 @@
           }
         ]
       }
-    ]
+    ],
+    "target": "v4"
   },
   "emulators": {
     "auth": {
