@@ -5,6 +5,7 @@ export const settings = {
     apiKey: "demo-key",
     authDomain: "demo-medio-urbano-v4.firebaseapp.com",
     projectId: "demo-medio-urbano-v4",
+    storageBucket: "demo-medio-urbano-v4.appspot.com",
     appId: "1:123456789:web:demo"
   },
   appCheckSiteKey: "",

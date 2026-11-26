@@ -6,7 +6,7 @@
     "node": "22"
   },
   "scripts": {
-    "test": "node --test core.test.js"
+    "test": "node --test *.test.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",

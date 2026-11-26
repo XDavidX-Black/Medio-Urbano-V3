@@ -1,3 +1,4 @@
+const {openNow,discountFor,inZone}=require("./policy");
 function fail(m){throw new Error(m)}
 
 function cents(v){if(typeof v!=="number"||!Number.isSafeInteger(v)||v<0||v>10000000)fail("Importe inválido");return v}
@@ -21,16 +22,16 @@ function normalize(data){
  return {token,items,customer,payment,zone:clean(data.zone,60),expectedTotal:cents(data.expectedTotal)};
 }
 
-function quote(req,catalog,config){
- if(!config||config.open!==true)fail("Tienda cerrada");
- const zone=config.zones?.find(z=>z.id===req.zone&&z.active===true);if(!zone)fail("Zona de envío no disponible");
+function quote(req,catalog,config,now=new Date()){
+ if(!openNow(config,now))fail("Tienda cerrada");
+ const zone=config.zones?.find(z=>z.id===req.zone&&z.active===true);if(!zone)fail("Zona de envío no disponible");if(!inZone(zone,req.customer.location))fail("La ubicación está fuera de cobertura o falta indicar la ubicación de entrega");
  let subtotal=0;
  const items=req.items.map(line=>{const p=catalog[line.id];if(!p||p.active!==true)fail("Producto no disponible");const base=cents(p.priceCents);if(base===0)fail("Precio no configurado");const options=line.extras.map(id=>{const e=p.extras?.find(x=>x.id===id&&x.active===true);if(!e)fail("Extra no disponible");return {id,name:clean(e.name,100),priceCents:cents(e.priceCents)}});const unit=base+options.reduce((a,x)=>a+x.priceCents,0);const total=unit*line.qty;subtotal+=total;return {id:line.id,name:clean(p.name,100),brand:clean(p.brand,30),qty:line.qty,extras:options,unitCents:unit,totalCents:total}});
  if(subtotal<cents(config.minCents))fail("Compra mínima no alcanzada");
- const delivery=cents(zone.feeCents),total=subtotal+delivery;
+ const discount=discountFor(config,subtotal,now),delivery=cents(zone.feeCents),total=subtotal-discount+delivery;
  if(total>10000000)fail("Pedido demasiado grande");
  if(total!==req.expectedTotal)fail("El importe cambió; revisa el carrito antes de confirmar");
- return {items,subtotalCents:subtotal,deliveryCents:delivery,totalCents:total,zone:{id:zone.id,name:clean(zone.name,100)}};
+ return {items,subtotalCents:subtotal,discountCents:discount,deliveryCents:delivery,totalCents:total,zone:{id:zone.id,name:clean(zone.name,100)}};
 }
 
 function transition(a,b){return ({Pendiente:["Preparando","Cancelado"],Preparando:["En reparto","Cancelado"],"En reparto":["Entregado","Cancelado"],Entregado:[],Cancelado:[]}[a]||[]).includes(b)}
