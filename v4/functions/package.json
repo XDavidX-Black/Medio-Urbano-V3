@@ -6,10 +6,15 @@
     "node": "22"
   },
   "scripts": {
-    "test": "node --test *.test.js"
+    "test": "node --test core.test.js policy.test.js",
+    "test:rules": "node --test rules.integration.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
     "firebase-functions": "^6.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.0",
+    "firebase": "^11.0.0"
   }
 }

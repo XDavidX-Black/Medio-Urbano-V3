@@ -48,3 +48,6 @@ Pruebas de integración reales y de reglas; App Check, configuración real, tari
 - Cobertura radial opcional por zona; el servidor comprueba distancia en línea recta de coordenadas declaradas, no rutas ni autenticidad del GPS.
 - Carga de fotos de hasta 5 MB en Storage con rol administrativo. No elimina automáticamente imágenes huérfanas.
 - Las configuraciones reales, pruebas integradas, aviso legal, recuperación de cuenta entre dispositivos y eventual pago en línea siguen pendientes. No se ha desplegado a Firebase.
+
+### Pruebas de permisos
+Con el emulador activo, desde functions ejecuta `npm run test:rules`. Incluye acceso de propietario, denegación de terceros y anónimos, permisos de catálogo y prohibición de escrituras directas de pedidos. No ejecutada todavía.
