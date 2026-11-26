@@ -4,5 +4,6 @@ export const modules=Object.freeze([
  {id:"orderPanel",group:"VENTAS",label:"Pedidos",title:"Gestión de pedidos",icon:"▤",description:"Consulta y actualiza el estado de los pedidos recientes."},
  {id:"catalogue",group:"VENTAS",label:"Productos",title:"Catálogo de productos",icon:"▦",description:"Gestiona productos, marcas, precios, imágenes y extras."},
  {id:"operation",group:"NEGOCIO",label:"Operación",title:"Operación y entrega",icon:"⚙",description:"Configura disponibilidad, horarios, descuentos y cobertura."},
+ {id:"brandManager",group:"NEGOCIO",label:"Marcas",title:"Marcas y logotipos",icon:"▧",description:"Añade y personaliza marcas desde el panel."},
  {id:"marketing",group:"NEGOCIO",label:"Marca y promociones",title:"Marca y promociones",icon:"◇",description:"Controla identidad, anuncios, portada y redes sociales."}
 ]);

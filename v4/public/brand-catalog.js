@@ -1,0 +1,6 @@
+import {db,collection,onSnapshot,safeImage,el} from "./common.js";
+export const defaults=["cocina","salad","burgers","pasta"].map((id,i)=>({id,name:id[0].toUpperCase()+id.slice(1),active:true,order:(i+1)*10,logo:""}));
+export const brandId=id=>typeof id==="string"&&/^[a-z0-9][a-z0-9-]{0,29}$/.test(id)&&id!=="marca";
+export function watchBrands(next,error){return onSnapshot(collection(db,"v4_marcas"),s=>{const map=new Map(defaults.map(b=>[b.id,{...b}]));for(const d of s.docs){const b={...d.data(),id:d.id};if(brandId(b.id)&&typeof b.name==="string"&&typeof b.active==="boolean")map.set(b.id,b)}next([...map.values()].sort((a,b)=>a.order-b.order||a.name.localeCompare(b.name,"es")))},error)}
+export function brandLogo(b,legacy=""){return safeImage(b?.logo||legacy,defaults.some(x=>x.id===b?.id)?"img/logo-"+b.id+".png":"img/logo-marca.png")}
+export function fillBrandSelect(select,brands,general=false){const current=select.value;select.replaceChildren();if(general){const o=el("option","General");o.value="";select.append(o)}for(const b of brands){const o=el("option",b.name+(b.active?"":" · inactiva"));o.value=b.id;select.append(o)}if([...select.options].some(x=>x.value===current))select.value=current}

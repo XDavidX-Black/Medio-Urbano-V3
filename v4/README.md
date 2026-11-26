@@ -30,3 +30,8 @@ Reportes por intervalo hasta 5000 pedidos, exportación CSV sin contacto, ventas
 - Dashboard: rangos rápidos, gráfica diaria y tabla de datos, distribución por estado, ranking y accesos operativos. Conserva límites y criterio de ventas del informe anterior.
 - Tienda: destacados, filtros y orden de productos sin modificar el esquema Firestore. Futuras funciones (inventario, clientes, sucursales, roles, pagos) requieren módulos y reglas propias; no están activadas.
 - Actualizar localmente con `git pull --ff-only origin redesign-v4` y Ctrl+F5. No requiere desplegar Firebase. Revisar en emuladores escritorio/móvil y pedidos de prueba.
+
+## V4.1 · marcas y ubicación
+- Marcas dinámicas con logo, nombre, orden y disponibilidad desde el panel; IDs estables, sin borrar productos ni pedidos al desactivar. Las marcas originales conservan sus logos. Reiniciar emuladores porque cambian reglas y Functions.
+- Selector de punto de entrega con GPS, mapa Leaflet/OpenStreetMap, marcador arrastrable, círculo de cobertura cuando existe y alternativa manual. No usa geocodificación ni rutas de reparto; la dirección se escribe. El servidor valida la zona seleccionada, su tarifa y cobertura radial cuando existe. El mapa transmite solicitudes de teselas al proveedor externo; revisar política de privacidad, atribución y condiciones de uso antes de producción. No se solicita GPS sin acción del cliente.
+- Base de negocio pequeño: catálogo, pedidos, operación, marcas y ventas. Inventario, POS, clientes, personal y sucursales requieren módulos adicionales.
