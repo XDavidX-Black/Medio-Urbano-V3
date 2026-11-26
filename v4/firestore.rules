@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function admin(){return request.auth != null && request.auth.token.admin == true;}
+  function product(){let d=request.resource.data;return d.keys().hasOnly(['name','brand','description','priceCents','active','image','extras','featured']) && d.name is string && d.name.size()>0 && d.name.size()<=100 && d.brand in ['cocina','salad','burgers','pasta'] && d.description is string && d.description.size()<=300 && d.priceCents is int && d.priceCents>0 && d.priceCents<=10000000 && d.active is bool && d.image is string && d.image.size()<=1000 && d.extras is list && d.extras.size()<=10 && d.featured is bool;}
+  match /productos/{id}{allow read: if true;allow create,update: if admin() && product();allow delete: if admin();}
+  match /config/publicCheckout{allow read: if true;allow create,update: if admin() && request.resource.data.keys().hasOnly(['open','minCents','zones','whatsapp','announcement']) && request.resource.data.open is bool && request.resource.data.minCents is int && request.resource.data.minCents>=0 && request.resource.data.zones is list && request.resource.data.zones.size()<=40 && request.resource.data.whatsapp is string && request.resource.data.announcement is string;allow delete: if false;}
+  match /pedidos/{id}{allow get: if admin() || (request.auth != null && resource.data.ownerUid==request.auth.uid);allow list: if admin();allow write: if false;}
+  match /orderRate/{id}{allow read,write: if false;}
+ }
+}
